@@ -1,0 +1,20 @@
+{
+  "name": "graphql-schema-builder",
+  "version": "0.1.0",
+  "description": "GraphQL Schema Builder",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha --recursive test"
+  },
+  "keywords": [
+    "graphql"
+  ],
+  "author": "George Sapkin",
+  "license": "MIT",
+  "dependencies": {
+    "graphql": "^0.9.3"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  }
+}
