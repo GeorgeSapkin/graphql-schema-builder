@@ -87,6 +87,8 @@ function getSchema(resolvers, schema, { customerProvider }) {
 
 ## Schema example
 
+`fields` can be either an object or a function accepting `{ Mixed, ObjectId }`. See Mongoose [Guide](http://mongoosejs.com/docs/guide.html) for more details about Schema definition.
+
 ```js
 const schema = {
     Asset: {
@@ -111,16 +113,6 @@ const schema = {
             name: {
                 type:     String,
                 required: true
-            },
-
-            description: {
-                type:     String,
-                required: false
-            },
-
-            model: {
-                type:     String,
-                required: false
             }
         }),
 
@@ -174,11 +166,6 @@ const schema = {
             name: {
                 type:     String,
                 required: false
-            },
-
-            model: {
-                type:     String,
-                required: false
             }
         })
     }
@@ -205,18 +192,14 @@ const resolvers = {
 
         sensors(obj, {}, _, fieldASTs) {
             const projection = getProjection(fieldASTs);
-            return sensorProvider._find({
-                _id: obj.parent
-            }, projection);
+            return sensorProvider.find({ asset: obj.id }, projection);
         }
     },
 
     Customer: {
         assets(obj, {}, _, fieldASTs) {
             const projection = getProjection(fieldASTs);
-            return assetProvider._find({
-                _id: obj.parent
-            }, projection);
+            return assetProvider.find({ customer: obj.id }, projection);
         }
     },
 
