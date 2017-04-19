@@ -1,5 +1,10 @@
 # graphql-schema-builder
 
+[![NPM version][npm-image]][npm-url]
+[![Build status][travis-image]][travis-url]
+[![Test coverage][coveralls-image]][coveralls-url]
+[![Downloads][downloads-image]][downloads-url]
+
 Builds GraphQL types based on Mongoose-like schema and a resolver list thus separating type schema from resolvers.
 
 Type's `fields` can be used to build Mongoose schema by calling it with `mongoose.Schema.Types` or mechanically converted into any other schemas.
@@ -37,16 +42,16 @@ function getSchema(resolvers, schema, { customerProvider }) {
                     },
 
                     resolve(_0, { id }, _1, fieldASTs) {
-                        const projections = getProjection(fieldASTs);
-                        return customerProvider.findById(id, projections);
+                        const projection = getProjection(fieldASTs);
+                        return customerProvider.findById(id, projection);
                     }
                 },
                 customers: {
                     type: new GraphQLList(types.Customer),
 
                     resolve(_0, {}, _1, fieldASTs) {
-                        const projections = getProjection(fieldASTs);
-                        return customerProvider.findAll(projections);
+                        const projection = getProjection(fieldASTs);
+                        return customerProvider.findAll(projection);
                     }
                 }
             }
@@ -211,3 +216,16 @@ const resolvers = {
 - Number
 - ObjectId
 - String
+
+## License
+
+MIT
+
+[npm-image]: https://img.shields.io/npm/v/graphql-schema-builder.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/graphql-schema-builder
+[travis-image]: https://img.shields.io/travis/GeorgeSapkin/graphql-schema-builder.svg?style=flat-square
+[travis-url]: https://travis-ci.org/GeorgeSapkin/graphql-schema-builder
+[coveralls-image]: https://img.shields.io/coveralls/GeorgeSapkin/graphql-schema-builder.svg?style=flat-square
+[coveralls-url]: https://coveralls.io/r/GeorgeSapkin/graphql-schema-builder
+[downloads-image]: http://img.shields.io/npm/dm/graphql-schema-builder.svg?style=flat-square
+[downloads-url]: https://npmjs.org/package/graphql-schema-builder

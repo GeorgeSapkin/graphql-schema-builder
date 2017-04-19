@@ -4,7 +4,9 @@
   "description": "GraphQL Schema Builder",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha --recursive test"
+    "test": "mocha --recursive test",
+    "test-cov": "istanbul cover ./node_modules/.bin/_mocha -- --reporter dot",
+    "test-travis": "istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- --reporter dot"
   },
   "keywords": [
     "graphql"
@@ -15,6 +17,7 @@
     "graphql": "^0.9.3"
   },
   "devDependencies": {
+    "istanbul": "^0.4.5",
     "mocha": "^3.2.0"
   }
 }
