@@ -17,8 +17,22 @@ const {
 } = require('graphql/language');
 
 const {
+    GraphQLJSON,
+
     parseLiteral
 } = require('../src/jsontype');
+
+describe('GraphQLJSON', () => {
+    it('serialize should work', () => {
+        const obj = { a: 1 };
+        strictEqual(GraphQLJSON.serialize(obj), obj);
+    });
+
+    it('parseValue should work', () => {
+        const obj = { a: 1 };
+        strictEqual(GraphQLJSON.parseValue(obj), obj);
+    });
+});
 
 describe('parseLiteral', () => {
     describe('should return', () => {
@@ -106,8 +120,4 @@ describe('parseLiteral', () => {
             }), null);
         });
     });
-});
-
-describe('buildType', () => {
-
 });

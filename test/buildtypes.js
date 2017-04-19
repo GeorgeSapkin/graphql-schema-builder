@@ -3,6 +3,7 @@
 const {
     ok: assert,
     deepStrictEqual,
+    equal,
     strictEqual,
     throws
 } = require('assert');
@@ -45,7 +46,9 @@ const Customer = {
 
             type:     String,
             required: true
-        }
+        },
+
+        value: Number
     }),
 
     dynamicFields: ({ ObjectId }) => ({
@@ -53,6 +56,22 @@ const Customer = {
             type: [ObjectId],
             ref:  Asset.name
         }
+    })
+};
+
+const CustomerWithoutDynamic = {
+    name:        'Customer',
+    description: 'A customer.',
+
+    fields: (/*{ Mixed, ObjectId }*/) => ({
+        name: {
+            description: 'The name of the customer.',
+
+            type:     String,
+            required: true
+        },
+
+        value: Number
     })
 };
 
@@ -180,10 +199,24 @@ describe('getQLType', () => {
             );
         });
 
+        it('[String]!', () => {
+            deepStrictEqual(
+                getQLType(new Map, {
+                    type:     [{ type: String }],
+                    required: false
+                }),
+                new GraphQLList(
+                    new GraphQLNonNull(
+                        GraphQLString
+                    )
+                )
+            );
+        });
+
         it('[Float!]', () => {
             deepStrictEqual(
                 getQLType(new Map, { type: [Number], required: false }),
-                new GraphQLList(new  GraphQLNonNull(GraphQLFloat))
+                new GraphQLList(new GraphQLNonNull(GraphQLFloat))
             );
         });
 
@@ -237,6 +270,10 @@ describe('buildFields', () => {
                         type:        new GraphQLNonNull(GraphQLString)
                     }
                 }, {
+                    value: {
+                        type: new GraphQLNonNull(GraphQLFloat)
+                    }
+                }, {
                     assets: {
                         type: new GraphQLNonNull(new GraphQLList(
                             new GraphQLNonNull(schemaStore.get(Asset.name))
@@ -273,6 +310,18 @@ describe('buildType', () => {
                 customerResolvers.assets
             );
         });
+
+        it('a type schema without dynamic fileds and resolvers', () => {
+            const customerType = buildType(
+                schemaStore, CustomerWithoutDynamic);
+
+            strictEqual(customerType.name, Customer.name);
+            strictEqual(customerType.description, Customer.description);
+
+            assert(customerType._typeConfig.fields instanceof Function);
+
+            equal(customerType._typeConfig.fields().assets, null);
+        });
     });
 
     describe('should throw', () => {
@@ -308,5 +357,15 @@ describe('buildTypes', () => {
 
     describe('should throw', () => {
         it('without schema', () => throws(buildTypes));
+    });
+});
+
+describe('types', () => {
+    it('Mixed should work', () => {
+        strictEqual(Mixed.inspect(), 'Mixed');
+    });
+
+    it('ObjectId should work', () => {
+        strictEqual(ObjectId.inspect(), 'ObjectId');
     });
 });

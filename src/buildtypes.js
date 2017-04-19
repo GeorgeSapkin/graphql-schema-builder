@@ -125,7 +125,6 @@ function buildType(schemaStore, typeSchema, resolvers = null) {
             }
         });
 
-        // TODO: simplify
         return _fields.reduce((a, b) => Object.assign(a, b), {});
     }
 
