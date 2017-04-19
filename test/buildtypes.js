@@ -40,7 +40,7 @@ const Customer = {
     name:        'Customer',
     description: 'A customer.',
 
-    fields: (/*{ Mixed, ObjectId }*/) => ({
+    fields: {
         name: {
             description: 'The name of the customer.',
 
@@ -49,7 +49,7 @@ const Customer = {
         },
 
         value: Number
-    }),
+    },
 
     dynamicFields: ({ ObjectId }) => ({
         assets: {
@@ -59,19 +59,43 @@ const Customer = {
     })
 };
 
-const CustomerWithoutDynamic = {
-    name:        'Customer',
-    description: 'A customer.',
+const CustomerFunNoDyn = {
+    name: 'Customer',
 
-    fields: (/*{ Mixed, ObjectId }*/) => ({
-        name: {
-            description: 'The name of the customer.',
+    fields: ({ Mixed }) => ({
+        name: Mixed
+    })
+};
 
-            type:     String,
-            required: true
-        },
+const CustomerObjNoDyn = {
+    name: 'Customer',
 
-        value: Number
+    fields: {
+        name: String
+    }
+};
+
+const CustomerFunObj = {
+    name: 'Customer',
+
+    fields: ({ Mixed }) => ({
+        name: Mixed
+    }),
+
+    dynamicFields: {
+        assets: [String]
+    }
+};
+
+const CustomerObjFun = {
+    name: 'Customer',
+
+    fields: {
+        name: String
+    },
+
+    dynamicFields: ({ ObjectId }) => ({
+        assets: [ObjectId]
     })
 };
 
@@ -257,23 +281,23 @@ describe('getQLType', () => {
 
 describe('buildFields', () => {
     describe('should return', () => {
-        it('a field schema', () => {
+        it('a field schema from object fields', () => {
             const allFields = Object.assign(
-                Customer.fields({}),
+                Customer.fields,
                 Customer.dynamicFields({ ObjectId })
             );
 
             deepStrictEqual(
-                buildFields(schemaStore, allFields, customerResolvers), [{
+                buildFields(allFields, schemaStore, customerResolvers), {
                     name: {
                         description: 'The name of the customer.',
                         type:        new GraphQLNonNull(GraphQLString)
-                    }
-                }, {
+                    },
+
                     value: {
                         type: new GraphQLNonNull(GraphQLFloat)
-                    }
-                }, {
+                    },
+
                     assets: {
                         type: new GraphQLNonNull(new GraphQLList(
                             new GraphQLNonNull(schemaStore.get(Asset.name))
@@ -281,24 +305,38 @@ describe('buildFields', () => {
 
                         resolve: customerResolvers.assets
                     }
-                }]
+                }
+            );
+        });
+
+        it('a field schema from function fields', () => {
+            deepStrictEqual(
+                buildFields(
+                    Customer.dynamicFields,
+                    schemaStore,
+                    customerResolvers
+                ), {
+                    assets: {
+                        type: new GraphQLNonNull(new GraphQLList(
+                            new GraphQLNonNull(schemaStore.get(Asset.name))
+                        )),
+
+                        resolve: customerResolvers.assets
+                    }
+                }
             );
         });
     });
 
     describe('should throw', () => {
-        it('without schemaStore', () => throws(buildFields));
-
-        it('with bad schemaStore', () => throws(() => buildFields({})));
-
-        it('without fields', () => throws(() => buildFields(new Map)));
+        it('without fields', () => throws(buildFields));
     });
 });
 
 describe('buildType', () => {
     describe('should return', () => {
-        it('a type schema', () => {
-            const customerType = buildType(schemaStore, Customer, resolvers);
+        it('a type schema with resolvers', () => {
+            const customerType = buildType(Customer, schemaStore, resolvers);
 
             strictEqual(customerType.name, Customer.name);
             strictEqual(customerType.description, Customer.description);
@@ -311,27 +349,65 @@ describe('buildType', () => {
             );
         });
 
-        it('a type schema without dynamic fileds and resolvers', () => {
-            const customerType = buildType(
-                schemaStore, CustomerWithoutDynamic);
+        it('a type schema (fun/no-dyn)', () => {
+            const customerType = buildType(CustomerFunNoDyn, schemaStore);
 
             strictEqual(customerType.name, Customer.name);
-            strictEqual(customerType.description, Customer.description);
 
             assert(customerType._typeConfig.fields instanceof Function);
 
+            deepStrictEqual(
+                customerType._typeConfig.fields().name.type,
+                new GraphQLNonNull(GraphQLJSON));
             equal(customerType._typeConfig.fields().assets, null);
+        });
+
+        it('a type schema (obj/no-dyn)', () => {
+            const customerType = buildType(CustomerObjNoDyn, schemaStore);
+
+            strictEqual(customerType.name, Customer.name);
+
+            assert(customerType._typeConfig.fields instanceof Function);
+
+            deepStrictEqual(
+                customerType._typeConfig.fields().name.type,
+                new GraphQLNonNull(GraphQLString));
+            equal(customerType._typeConfig.fields().assets, null);
+        });
+
+        it('a type schema (fun/obj)', () => {
+            const customerType = buildType(CustomerFunObj, schemaStore);
+
+            strictEqual(customerType.name, Customer.name);
+
+            assert(customerType._typeConfig.fields instanceof Function);
+
+            deepStrictEqual(
+                customerType._typeConfig.fields().name.type,
+                new GraphQLNonNull(GraphQLJSON));
+            equal(customerType._typeConfig.fields().assets.resolve, null);
+        });
+
+        it('a type schema (obj/fun)', () => {
+            const customerType = buildType(CustomerObjFun, schemaStore);
+
+            strictEqual(customerType.name, Customer.name);
+
+            assert(customerType._typeConfig.fields instanceof Function);
+
+            deepStrictEqual(
+                customerType._typeConfig.fields().name.type,
+                new GraphQLNonNull(GraphQLString));
+            equal(customerType._typeConfig.fields().assets.resolve, null);
         });
     });
 
     describe('should throw', () => {
-        it('without schemaStore', () => throws(buildType));
+        it('without typeSchema', () => throws(buildType));
 
-        it('with bad schemaStore', () => throws(() => buildType({})));
+        it('without schemaStore', () => throws(() => buildType({}, new Map)));
 
-        it('without typeSchema', () => throws(() => buildType(new Map)));
-
-        it('with bad typeSchema', () => throws(() => buildType(new Map, {})));
+        it('with bad typeSchema', () => throws(() => buildType({})));
     });
 });
 

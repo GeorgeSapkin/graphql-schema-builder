@@ -42,12 +42,8 @@ function getQLType(schemaStore, { type, ref, required = true }) {
         return required ? new GraphQLNonNull(GraphQLJSON) : GraphQLJSON;
     }
     else if (type === types.ObjectId) {
-        if (typeof ref === 'string') {
-            const refType = schemaStore.get(ref);
-            return required ? new GraphQLNonNull(refType) : refType;
-        }
-        else
-            return required ? new GraphQLNonNull(GraphQLID) : GraphQLID;
+        const refType = schemaStore.get(ref) || GraphQLID;
+        return required ? new GraphQLNonNull(refType) : refType;
     }
     else if (Array.isArray(type)) {
         const subType = type[0];
@@ -68,12 +64,14 @@ function getQLType(schemaStore, { type, ref, required = true }) {
         return null;
 }
 
-function buildFields(schemaStore, fields, resolvers) {
-    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
+function buildFields(fields, schemaStore = new Map, resolvers = null) {
     assert(fields != null, 'fields must be set');
+    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
 
-    return Object.getOwnPropertyNames(fields).map(x => {
-        const fieldData = fields[x];
+    const _fields = (fields instanceof Function) ? fields(types) : fields;
+
+    return Object.getOwnPropertyNames(_fields).map(x => {
+        const fieldData = _fields[x];
 
         const type = (() => {
             if (fieldData.type != null)
@@ -93,23 +91,32 @@ function buildFields(schemaStore, fields, resolvers) {
         }
 
         return { [x]: details };
-    });
+    }).reduce((a, b) => Object.assign(a, b), {});
 }
 
-function buildType(schemaStore, typeSchema, resolvers = null) {
-    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
+function buildType(typeSchema, schemaStore = new Map, resolvers = null) {
     assert(typeSchema, 'typeSchema must be set');
+    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
     assert(typeSchema.name, 'typeSchema.name must be set');
 
     // fields is a function to resolve reference types dynamically
     function fields() {
         const dbFields = (() => {
-            if (typeSchema.dynamicFields == null)
-                return typeSchema.fields(types);
+            const fields        = typeSchema.fields;
+            const dynamicFields = typeSchema.dynamicFields;
+
+            if (dynamicFields == null)
+                return (fields instanceof Function)
+                    ? fields(types)
+                    : fields;
             else
                 return Object.assign(
-                    typeSchema.fields(types),
-                    typeSchema.dynamicFields(types)
+                    (fields instanceof Function)
+                        ? fields(types)
+                        : fields,
+                    (dynamicFields instanceof Function)
+                        ? dynamicFields(types)
+                        : dynamicFields
                 );
         })();
 
@@ -117,15 +124,12 @@ function buildType(schemaStore, typeSchema, resolvers = null) {
             ? resolvers[typeSchema.name]
             : null;
 
-        const _fields = buildFields(schemaStore, dbFields, _resolvers);
+        const _fields = buildFields(dbFields, schemaStore, _resolvers);
+        _fields.id = {
+            type: new GraphQLNonNull(GraphQLID)
+        };
 
-        _fields.push({
-            id: {
-                type: new GraphQLNonNull(GraphQLID)
-            }
-        });
-
-        return _fields.reduce((a, b) => Object.assign(a, b), {});
+        return _fields;
     }
 
     const outTypeSchema = {
@@ -148,7 +152,7 @@ function buildTypes(schema, resolvers = null) {
     const schemaStore = new Map;
 
     const types = domainTypeNames.map(x => {
-        const type = buildType(schemaStore, schema[x], resolvers);
+        const type = buildType(schema[x], schemaStore, resolvers);
 
         schemaStore.set(schema[x].name, type);
 

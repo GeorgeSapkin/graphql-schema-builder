@@ -1,6 +1,7 @@
 'use strict';
 
 const {
+    buildFields,
     buildTypes
 } = require('./buildtypes');
 
@@ -13,6 +14,7 @@ const {
 } = require('./projection');
 
 module.exports = {
+    buildFields,
     buildTypes,
     getProjection,
 

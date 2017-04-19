@@ -5,7 +5,7 @@
 [![Test coverage][coveralls-image]][coveralls-url]
 [![Downloads][downloads-image]][downloads-url]
 
-Builds GraphQL types based on Mongoose-like schema and a resolver list thus separating type schema from resolvers.
+Builds GraphQL types based on Mongoose-like schema and a resolver list thus separating type schema from resolvers. Simplifies defining mutation arguments based on schema types.
 
 Type's `fields` can be used to build Mongoose schema by calling it with `mongoose.Schema.Types` or mechanically converted into any other schemas.
 
@@ -19,6 +19,7 @@ npm install --save graphql-schema-builder
 
 ```js
 const {
+    buildFields,
     buildTypes,
     getProjection,
 
@@ -26,7 +27,12 @@ const {
 } = require('graphql-schema-builder');
 
 function getSchema(resolvers, schema, { customerProvider }) {
-    const types = buildTypes(resolvers, domain);
+    // build types based on existing domain schemas and resolvers
+    const types = buildTypes({
+        Asset,
+        Customer,
+        Sensos
+    }, resolvers);
 
     return new GraphQLSchema({
         query: new GraphQLObjectType({
@@ -57,7 +63,23 @@ function getSchema(resolvers, schema, { customerProvider }) {
             }
         }),
 
-        /* mutations, etc. */
+        mutation: new GraphQLObjectType({
+            name: 'Mutation',
+            fields: {
+                createAsset: {
+                    type: types.Asset,
+                    // build arguments based on domain schemas instead of
+                    // specifying them manually
+                    args: buildFields(Asset.fields),
+
+                    resolve(obj, args, source, fieldASTs) {
+                        // create asset
+                    }
+                },
+
+                /* more mutations, etc. */
+            }
+        })
     });
 }
 
@@ -114,16 +136,16 @@ const schema = {
         name:        'Customer',
         description: 'A customer.',
 
-        fields: ({ Mixed, ObjectId }) => ({
+        fields: {
             name: {
                 description: 'The name of the customer.',
 
                 type:     String,
                 required: true
             }
-        }),
+        },
 
-        dynamicFields: ({ ObjectId }) => ({
+        dynamicFields: ({ Mixed, ObjectId }) => ({
             assets: {
                 type: [ObjectId],
                 ref:  'Asset'
