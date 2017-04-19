@@ -227,5 +227,5 @@ MIT
 [travis-url]: https://travis-ci.org/GeorgeSapkin/graphql-schema-builder
 [coveralls-image]: https://img.shields.io/coveralls/GeorgeSapkin/graphql-schema-builder.svg?style=flat-square
 [coveralls-url]: https://coveralls.io/r/GeorgeSapkin/graphql-schema-builder
-[downloads-image]: http://img.shields.io/npm/dm/graphql-schema-builder.svg?style=flat-square
+[downloads-image]: https://img.shields.io/npm/dm/graphql-schema-builder.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/graphql-schema-builder
