@@ -113,7 +113,7 @@ function buildType(schemaStore, typeSchema, resolvers = null) {
                 );
         })();
 
-        const _resolvers = Array.isArray(resolvers)
+        const _resolvers = resolvers != null
             ? resolvers[typeSchema.name]
             : null;
 

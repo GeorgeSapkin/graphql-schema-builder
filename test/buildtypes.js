@@ -267,6 +267,11 @@ describe('buildType', () => {
             strictEqual(customerType.description, Customer.description);
 
             assert(customerType._typeConfig.fields instanceof Function);
+
+            strictEqual(
+                customerType._typeConfig.fields().assets.resolve,
+                customerResolvers.assets
+            );
         });
     });
 
@@ -284,12 +289,20 @@ describe('buildType', () => {
 describe('buildTypes', () => {
     describe('should return', () => {
         it('type schemas', () => {
-            const { Customer: customerType } = buildTypes({ Customer }, resolvers);
+            const { Customer: customerType } = buildTypes({
+                Asset,
+                Customer
+            }, resolvers);
 
             strictEqual(customerType.name, Customer.name);
             strictEqual(customerType.description, Customer.description);
 
             assert(customerType._typeConfig.fields instanceof Function);
+
+            strictEqual(
+                customerType._typeConfig.fields().assets.resolve,
+                customerResolvers.assets
+            );
         });
     });
 
