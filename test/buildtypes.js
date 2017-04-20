@@ -12,6 +12,7 @@ const {
     GraphQLBoolean,
     GraphQLFloat,
     GraphQLID,
+    GraphQLInputObjectType,
     GraphQLInt,
     GraphQLList,
     GraphQLNonNull,
@@ -21,6 +22,7 @@ const {
 
 const {
     buildFields,
+    buildSubType: _buildSubType,
     buildType,
     buildTypes,
     getQLType,
@@ -33,6 +35,8 @@ const {
 const {
     GraphQLJSON
 } = require('../src/jsontype');
+
+const nop = () => {};
 
 const Asset = { name: 'Asset' };
 
@@ -99,6 +103,44 @@ const CustomerObjFun = {
     })
 };
 
+const CustomerNested = {
+    name: 'Customer',
+
+    fields: {
+        metadata: {
+            created: {
+                type:     Date,
+                required: true
+            }
+        }
+    }
+};
+
+const AssetNested = {
+    name: 'Asset',
+
+    fields: {
+        metadata: {
+            created: {
+                type:     Date,
+                required: true
+            }
+        }
+    }
+};
+
+const BadAssetNested = {
+    name: 'Asset',
+
+    fields: {
+        metadata: {
+            updated: {
+                type: Date
+            }
+        }
+    }
+};
+
 const customerResolvers = {
     assets() {}
 };
@@ -115,101 +157,105 @@ describe('getQLType', () => {
     describe('should return', () => {
         it('String!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: String }),
+                getQLType(nop, { type: String }),
                 new GraphQLNonNull(GraphQLString)
             );
         });
 
         it('String', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: String, required: false }),
+                getQLType(nop, { type: String, required: false }),
                 GraphQLString
             );
         });
 
         it('Float!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Number }),
+                getQLType(nop, { type: Number }),
                 new GraphQLNonNull(GraphQLFloat)
             );
         });
 
         it('Float', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Number, required: false }),
+                getQLType(nop, { type: Number, required: false }),
                 GraphQLFloat
             );
         });
 
         it('Int!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Date }),
+                getQLType(nop, { type: Date }),
                 new GraphQLNonNull(GraphQLInt)
             );
         });
 
         it('Int', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Date, required: false }),
+                getQLType(nop, { type: Date, required: false }),
                 GraphQLInt
             );
         });
 
         it('Boolean!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Boolean }),
+                getQLType(nop, { type: Boolean }),
                 new GraphQLNonNull(GraphQLBoolean)
             );
         });
 
         it('Boolean', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Boolean, required: false }),
+                getQLType(nop, { type: Boolean, required: false }),
                 GraphQLBoolean
             );
         });
 
         it('JSON!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Mixed }),
+                getQLType(nop, { type: Mixed }),
                 new GraphQLNonNull(GraphQLJSON)
             );
         });
 
         it('JSON', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: Mixed, required: false }),
+                getQLType(nop, { type: Mixed, required: false }),
                 GraphQLJSON
             );
         });
 
         it('ID!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: ObjectId }),
+                getQLType(nop, { type: ObjectId }),
                 new GraphQLNonNull(GraphQLID)
             );
         });
 
         it('ID', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: ObjectId, required: false }),
+                getQLType(nop, { type: ObjectId, required: false }),
                 GraphQLID
             );
         });
 
         it('refType!', () => {
-            const schemaStore = new Map([[
-                Asset.name, new GraphQLObjectType(Asset)
-            ]]);
+            const getExistingType = () => new GraphQLObjectType(Asset);
+
             deepStrictEqual(
-                getQLType(schemaStore, { type: ObjectId, ref: Asset.name }),
+                getQLType(getExistingType, {
+                    type: ObjectId,
+                    ref:  Asset.name
+                }),
                 new GraphQLNonNull(schemaStore.get(Asset.name))
             );
         });
 
         it('refType', () => {
+            const getExistingType = () => schemaStore.get(Asset.name);
+
             deepStrictEqual(
-                getQLType(schemaStore, {
+                getQLType(getExistingType, {
                     type: ObjectId, ref: Asset.name, required: false
                 }),
                 schemaStore.get(Asset.name)
@@ -218,14 +264,14 @@ describe('getQLType', () => {
 
         it('ID!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: ObjectId }),
+                getQLType(nop, { type: ObjectId }),
                 new GraphQLNonNull(GraphQLID)
             );
         });
 
         it('[String]!', () => {
             deepStrictEqual(
-                getQLType(new Map, {
+                getQLType(nop, {
                     type:     [{ type: String }],
                     required: false
                 }),
@@ -239,21 +285,26 @@ describe('getQLType', () => {
 
         it('[Float!]', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: [Number], required: false }),
+                getQLType(nop, { type: [Number], required: false }),
                 new GraphQLList(new GraphQLNonNull(GraphQLFloat))
             );
         });
 
         it('[Boolean]!', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: [{ type: Boolean, required: false }] }),
+                getQLType(nop, { type: [{ type: Boolean, required: false }] }),
                 new GraphQLNonNull(new GraphQLList(GraphQLBoolean))
             );
         });
 
         it('[refType!]!', () => {
+            const getExistingType = () => schemaStore.get(Asset.name);
+
             deepStrictEqual(
-                getQLType(schemaStore, { type: [ObjectId], ref: Asset.name }),
+                getQLType(getExistingType, {
+                    type: [ObjectId],
+                    ref:  Asset.name
+                }),
                 new GraphQLNonNull(
                     new GraphQLList(
                         new GraphQLNonNull(schemaStore.get(Asset.name))
@@ -264,7 +315,7 @@ describe('getQLType', () => {
 
         it('null', () => {
             deepStrictEqual(
-                getQLType(new Map, { type: {} }),
+                getQLType(nop, { type: {} }),
                 null
             );
         });
@@ -281,6 +332,8 @@ describe('getQLType', () => {
 
 describe('buildFields', () => {
     describe('should return', () => {
+        const getExistingType = schemaStore.get.bind(schemaStore);
+
         it('a field schema from object fields', () => {
             const allFields = Object.assign(
                 Customer.fields,
@@ -288,7 +341,11 @@ describe('buildFields', () => {
             );
 
             deepStrictEqual(
-                buildFields(allFields, schemaStore, customerResolvers), {
+                buildFields(allFields, {
+                    getExistingType,
+
+                    resolvers: customerResolvers
+                }), {
                     name: {
                         description: 'The name of the customer.',
                         type:        new GraphQLNonNull(GraphQLString)
@@ -311,11 +368,11 @@ describe('buildFields', () => {
 
         it('a field schema from function fields', () => {
             deepStrictEqual(
-                buildFields(
-                    Customer.dynamicFields,
-                    schemaStore,
-                    customerResolvers
-                ), {
+                buildFields(Customer.dynamicFields, {
+                    getExistingType,
+
+                    resolvers: customerResolvers
+                }), {
                     assets: {
                         type: new GraphQLNonNull(new GraphQLList(
                             new GraphQLNonNull(schemaStore.get(Asset.name))
@@ -326,17 +383,32 @@ describe('buildFields', () => {
                 }
             );
         });
+
+        it('a field schema from nested fields', () => {
+            const fields = buildFields(CustomerNested.fields);
+            assert(fields.metadata.type instanceof GraphQLInputObjectType);
+        });
     });
 
     describe('should throw', () => {
         it('without fields', () => throws(buildFields));
+
+        it('without buildSubType', () => throws(() => buildFields({}, {
+            buildSubType: null
+        })));
+        it('without buildSubType', () => throws(() => buildFields({}, {
+            buildSubType:    nop,
+            getExistingType: null
+        })));
     });
 });
 
 describe('buildType', () => {
     describe('should return', () => {
         it('a type schema with resolvers', () => {
-            const customerType = buildType(Customer, schemaStore, resolvers);
+            const customerType = buildType(Customer, {
+                resolvers
+            });
 
             strictEqual(customerType.name, Customer.name);
             strictEqual(customerType.description, Customer.description);
@@ -350,7 +422,7 @@ describe('buildType', () => {
         });
 
         it('a type schema (fun/no-dyn)', () => {
-            const customerType = buildType(CustomerFunNoDyn, schemaStore);
+            const customerType = buildType(CustomerFunNoDyn);
 
             strictEqual(customerType.name, Customer.name);
 
@@ -363,7 +435,7 @@ describe('buildType', () => {
         });
 
         it('a type schema (obj/no-dyn)', () => {
-            const customerType = buildType(CustomerObjNoDyn, schemaStore);
+            const customerType = buildType(CustomerObjNoDyn);
 
             strictEqual(customerType.name, Customer.name);
 
@@ -376,7 +448,7 @@ describe('buildType', () => {
         });
 
         it('a type schema (fun/obj)', () => {
-            const customerType = buildType(CustomerFunObj, schemaStore);
+            const customerType = buildType(CustomerFunObj);
 
             strictEqual(customerType.name, Customer.name);
 
@@ -389,7 +461,7 @@ describe('buildType', () => {
         });
 
         it('a type schema (obj/fun)', () => {
-            const customerType = buildType(CustomerObjFun, schemaStore);
+            const customerType = buildType(CustomerObjFun);
 
             strictEqual(customerType.name, Customer.name);
 
@@ -400,15 +472,105 @@ describe('buildType', () => {
                 new GraphQLNonNull(GraphQLString));
             equal(customerType._typeConfig.fields().assets.resolve, null);
         });
+
+        it('a nested type schema', () => {
+            const customerType = buildType(CustomerNested, {});
+
+            strictEqual(customerType.name, Customer.name);
+
+            assert(customerType._typeConfig.fields instanceof Function);
+
+            assert(
+                customerType._typeConfig.fields().metadata.type
+                    instanceof GraphQLInputObjectType);
+        });
+
+        it('a nested type schema with duplicate sub type', () => {
+            const localSchemaStore = new Map;
+
+            function buildSubType(type) {
+                const newType = new GraphQLObjectType(type);
+                localSchemaStore.set(type.name, newType);
+                return newType;
+            }
+
+            const getExistingType = localSchemaStore.get.bind(localSchemaStore);
+
+            const assetType = buildType(AssetNested, {
+                buildSubType,
+                getExistingType
+            });
+            const customerType = buildType(CustomerNested, {
+                buildSubType,
+                getExistingType
+            });
+
+            strictEqual(assetType.name,    Asset.name);
+            strictEqual(customerType.name, Customer.name);
+
+            assert(assetType._typeConfig.fields    instanceof Function);
+            assert(customerType._typeConfig.fields instanceof Function);
+
+            assert(
+                assetType._typeConfig.fields().metadata.type
+                    instanceof GraphQLObjectType);
+
+            deepStrictEqual(
+                assetType._typeConfig.fields().metadata,
+                customerType._typeConfig.fields().metadata);
+        });
     });
 
     describe('should throw', () => {
         it('without typeSchema', () => throws(buildType));
 
-        it('without schemaStore', () => throws(() => buildType({}, new Map)));
-
         it('with bad typeSchema', () => throws(() => buildType({})));
+
+        it('without buildSubType', () => throws(() => buildType({}, {
+            buildSubType: null
+        })));
+
+        it('without getExistingType', () => throws(() => buildType({}, {
+            buildSubType:    nop,
+            getExistingType: null
+        })));
+
+        it('with different sub type', () => {
+            const localSchemaStore = new Map;
+
+            function buildSubType(type) {
+                const newType = new GraphQLObjectType(type);
+                localSchemaStore.set(type.name, newType);
+                return newType;
+            }
+
+            const getExistingType = localSchemaStore.get.bind(localSchemaStore);
+
+            buildType(CustomerNested, {
+                buildSubType,
+                getExistingType
+            })._typeConfig.fields();
+
+            throws(() => buildType(BadAssetNested, {
+                buildSubType,
+                getExistingType
+            })._typeConfig.fields());
+        });
     });
+});
+
+describe('buildSubType', () => {
+    it('should return type', () => {
+        const localSchemaStore = new Map;
+        const buildSubType = _buildSubType(localSchemaStore);
+
+        buildSubType(Customer);
+
+        assert(
+            localSchemaStore.get(Customer.name) instanceof GraphQLObjectType);
+    });
+
+    it('should throw without schemaStore', () => throws(_buildSubType));
 });
 
 describe('buildTypes', () => {

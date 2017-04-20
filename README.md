@@ -34,6 +34,19 @@ function getSchema(resolvers, schema, { customerProvider }) {
         Sensos
     }, resolvers);
 
+    const schemaStore = new Map;
+
+    function buildSubType({ name, fields }) {
+        const _name = `${name}Input`;
+        const newType = new GraphQLInputObjectType({ name: _name, fields });
+        schemaStore.set(_name, newType);
+        return newType;
+    }
+
+    function getExistingType(name) {
+        return schemaStore.get(`${name}Input`);
+    }
+
     return new GraphQLSchema({
         query: new GraphQLObjectType({
             name: 'RootQueryType',
@@ -70,7 +83,10 @@ function getSchema(resolvers, schema, { customerProvider }) {
                     type: types.Asset,
                     // build arguments based on domain schemas instead of
                     // specifying them manually
-                    args: buildFields(Asset.fields),
+                    args: buildFields(Asset.fields, {
+                        buildSubType,
+                        getExistingType
+                    }),
 
                     resolve(obj, args, source, fieldASTs) {
                         // create asset
@@ -134,6 +150,14 @@ const schema = {
 
                 type:     String,
                 required: true
+            },
+
+            // Will result in subtype
+            metadata: {
+                created: {
+                    type:     Date,
+                    required: true
+                }
             }
         },
 

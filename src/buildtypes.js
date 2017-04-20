@@ -1,11 +1,15 @@
 'use strict';
 
-const assert = require('assert');
+const {
+    ok: assert,
+    deepStrictEqual
+ } = require('assert');
 
 const {
     GraphQLBoolean,
     GraphQLFloat,
     GraphQLID,
+    GraphQLInputObjectType,
     GraphQLInt,
     GraphQLList,
     GraphQLNonNull,
@@ -22,8 +26,9 @@ const types = {
     ObjectId: { inspect: () => 'ObjectId' }
 };
 
-function getQLType(schemaStore, { type, ref, required = true }) {
-    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
+function getQLType(getExistingType, { type, ref, required = true }) {
+    assert(getExistingType instanceof Function,
+        'getExistingType must be a function');
     assert(type != null, 'type must be set');
 
     if (type === String) {
@@ -42,18 +47,19 @@ function getQLType(schemaStore, { type, ref, required = true }) {
         return required ? new GraphQLNonNull(GraphQLJSON) : GraphQLJSON;
     }
     else if (type === types.ObjectId) {
-        const refType = schemaStore.get(ref) || GraphQLID;
+        const refType = getExistingType(ref) || GraphQLID;
         return required ? new GraphQLNonNull(refType) : refType;
     }
     else if (Array.isArray(type)) {
         const subType = type[0];
 
         if (subType.type != null) {
-            const listType = new GraphQLList(getQLType(schemaStore, subType));
+            const listType = new GraphQLList(getQLType(
+                getExistingType, subType));
             return required ? new GraphQLNonNull(listType) : listType;
         }
         else {
-            const listType = new GraphQLList(getQLType(schemaStore, {
+            const listType = new GraphQLList(getQLType(getExistingType, {
                 type: subType,
                 ref
             }));
@@ -64,9 +70,16 @@ function getQLType(schemaStore, { type, ref, required = true }) {
         return null;
 }
 
-function buildFields(fields, schemaStore = new Map, resolvers = null) {
+function buildFields(fields, {
+    buildSubType    = x => new GraphQLInputObjectType(x),
+    getExistingType = () => {},
+    resolvers       = null
+} = {}) {
     assert(fields != null, 'fields must be set');
-    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
+    assert(buildSubType instanceof Function,
+        'buildSubType must be a function');
+    assert(getExistingType instanceof Function,
+        'getExistingType must be a function');
 
     const _fields = (fields instanceof Function) ? fields(types) : fields;
 
@@ -74,12 +87,41 @@ function buildFields(fields, schemaStore = new Map, resolvers = null) {
         const fieldData = _fields[x];
 
         const type = (() => {
-            if (fieldData.type != null)
+            // if fieldData is an object, not an array and doesn't have type
+            // then assume it's a subtype
+
+            if (fieldData instanceof Object
+                && !Array.isArray(fieldData)
+                && fieldData !== Number
+                && fieldData !== String
+                && fieldData !== types.Mixed
+                && fieldData !== types.ObjectId
+                && fieldData.type == null
+            ) {
+                const existingType = getExistingType(x);
+                const fields = buildFields(fieldData, {
+                    buildSubType,
+                    getExistingType,
+                    resolvers
+                });
+
+                if (existingType != null) {
+                    const existingFields = existingType._typeConfig.fields;
+
+                    deepStrictEqual(fields, existingFields,
+                        `Subtypes' fields with same name ${x} have to match`);
+
+                    return existingType;
+                }
+                else
+                    return buildSubType({ name: x, fields });
+            }
+            else if (fieldData.type != null)
                 // figure out type based on type field
-                return getQLType(schemaStore, fieldData);
+                return getQLType(getExistingType, fieldData);
             else
                 // figure out type based fieldData
-                return getQLType(schemaStore, { type: fieldData });
+                return getQLType(getExistingType, { type: fieldData });
         })();
 
         const details = { type };
@@ -94,10 +136,16 @@ function buildFields(fields, schemaStore = new Map, resolvers = null) {
     }).reduce((a, b) => Object.assign(a, b), {});
 }
 
-function buildType(typeSchema, schemaStore = new Map, resolvers = null) {
+function buildType(typeSchema, {
+    buildSubType    = x => new GraphQLInputObjectType(x),
+    getExistingType = () => {},
+    resolvers       = null
+} = {}) {
     assert(typeSchema, 'typeSchema must be set');
-    assert(schemaStore instanceof Map, 'schemaStore must be a Map');
+    // assert(schemaStore instanceof Map, 'schemaStore must be a Map');
     assert(typeSchema.name, 'typeSchema.name must be set');
+    assert(getExistingType instanceof Function,
+        'getExistingType must be a function');
 
     // fields is a function to resolve reference types dynamically
     function fields() {
@@ -124,7 +172,12 @@ function buildType(typeSchema, schemaStore = new Map, resolvers = null) {
             ? resolvers[typeSchema.name]
             : null;
 
-        const _fields = buildFields(dbFields, schemaStore, _resolvers);
+        const _fields = buildFields(dbFields, {
+            buildSubType,
+            getExistingType,
+
+            resolvers: _resolvers
+        });
         _fields.id = {
             type: new GraphQLNonNull(GraphQLID)
         };
@@ -144,6 +197,16 @@ function buildType(typeSchema, schemaStore = new Map, resolvers = null) {
     return new GraphQLObjectType(outTypeSchema);
 }
 
+function buildSubType(schemaStore) {
+    assert(schemaStore != null, 'schemaStore must be set');
+
+    return ({ name, fields }) => {
+        const newType = new GraphQLObjectType({ name, fields });
+        schemaStore.set(name, newType);
+        return newType;
+    };
+}
+
 function buildTypes(schema, resolvers = null) {
     assert(schema != null, 'schema must be set');
 
@@ -151,8 +214,15 @@ function buildTypes(schema, resolvers = null) {
 
     const schemaStore = new Map;
 
+    const getExistingType = schemaStore.get.bind(schemaStore);
+
     const types = domainTypeNames.map(x => {
-        const type = buildType(schema[x], schemaStore, resolvers);
+        const type = buildType(schema[x], {
+            buildSubType: buildSubType(schemaStore),
+
+            getExistingType,
+            resolvers
+        });
 
         schemaStore.set(schema[x].name, type);
 
@@ -169,6 +239,7 @@ module.exports = {
     buildTypes,
 
     buildFields,
+    buildSubType,
     buildType,
     getQLType,
     types
