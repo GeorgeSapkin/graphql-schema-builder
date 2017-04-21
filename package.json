@@ -1,6 +1,6 @@
 {
   "name": "graphql-schema-builder",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "GraphQL Schema Builder",
   "repository": "GeorgeSapkin/graphql-schema-builder",
   "main": "src/index.js",
@@ -15,7 +15,8 @@
   "author": "George Sapkin",
   "license": "MIT",
   "dependencies": {
-    "graphql": "^0.9.3"
+    "graphql": "^0.9.3",
+    "graphql-iso-date": "^3.1.1"
   },
   "devDependencies": {
     "istanbul": "^0.4.5",

@@ -10,12 +10,15 @@ const {
     GraphQLFloat,
     GraphQLID,
     GraphQLInputObjectType,
-    GraphQLInt,
     GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
     GraphQLString
 } = require('graphql');
+
+const {
+    GraphQLDateTime
+} = require('graphql-iso-date');
 
 const {
     GraphQLJSON
@@ -38,7 +41,7 @@ function getQLType(getExistingType, { type, ref, required = true }) {
         return required ? new GraphQLNonNull(GraphQLFloat) : GraphQLFloat;
     }
     else if (type === Date) {
-        return required ? new GraphQLNonNull(GraphQLInt) : GraphQLInt;
+        return required ? new GraphQLNonNull(GraphQLDateTime) : GraphQLDateTime;
     }
     else if (type === Boolean) {
         return required ? new GraphQLNonNull(GraphQLBoolean) : GraphQLBoolean;

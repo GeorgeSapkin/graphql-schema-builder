@@ -13,12 +13,15 @@ const {
     GraphQLFloat,
     GraphQLID,
     GraphQLInputObjectType,
-    GraphQLInt,
     GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
     GraphQLString
 } = require('graphql');
+
+const {
+    GraphQLDateTime
+} = require('graphql-iso-date');
 
 const {
     buildFields,
@@ -183,17 +186,17 @@ describe('getQLType', () => {
             );
         });
 
-        it('Int!', () => {
+        it('DateTime!', () => {
             deepStrictEqual(
                 getQLType(nop, { type: Date }),
-                new GraphQLNonNull(GraphQLInt)
+                new GraphQLNonNull(GraphQLDateTime)
             );
         });
 
-        it('Int', () => {
+        it('DateTime', () => {
             deepStrictEqual(
                 getQLType(nop, { type: Date, required: false }),
-                GraphQLInt
+                GraphQLDateTime
             );
         });
 
