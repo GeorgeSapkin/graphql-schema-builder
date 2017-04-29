@@ -5,9 +5,8 @@
   "repository": "GeorgeSapkin/graphql-schema-builder",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha --recursive test",
-    "test-cov": "istanbul cover ./node_modules/.bin/_mocha -- --reporter dot",
-    "test-travis": "istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- --reporter dot"
+    "test": "nyc --reporter=html --reporter=text mocha",
+    "test-travis": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
     "graphql"
@@ -19,7 +18,7 @@
     "graphql-iso-date": "^3.1.1"
   },
   "devDependencies": {
-    "istanbul": "^0.4.5",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "nyc": "^10.2.0"
   }
 }

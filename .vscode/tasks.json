@@ -19,10 +19,6 @@
             "taskName": "test",
             "args": ["run", "test"],
             "isBuildCommand": true
-        },
-        {
-            "taskName": "test-cov",
-            "args": ["run", "test-cov"]
         }
     ]
 }
