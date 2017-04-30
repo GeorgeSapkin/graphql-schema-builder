@@ -246,6 +246,10 @@ const resolvers = {
 - ObjectId
 - String
 
+## Examples
+
+See GraphQL example in [pubsub-store][pubsub-store] repository.
+
 ## License
 
 MIT
@@ -258,3 +262,4 @@ MIT
 [coveralls-url]: https://coveralls.io/r/GeorgeSapkin/graphql-schema-builder
 [downloads-image]: https://img.shields.io/npm/dm/graphql-schema-builder.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/graphql-schema-builder
+[pubsub-store]: https://github.com/GeorgeSapkin/pubsub-store

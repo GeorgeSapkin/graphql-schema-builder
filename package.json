@@ -1,6 +1,6 @@
 {
   "name": "graphql-schema-builder",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "GraphQL Schema Builder",
   "repository": "GeorgeSapkin/graphql-schema-builder",
   "main": "src/index.js",
