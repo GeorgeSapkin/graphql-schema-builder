@@ -1,9 +1,9 @@
-.nyc_output
 .vscode
 coverage
 node_modules
 test
 .eslintrc.json
 .gitignore
+.gitlab-ci.yml
 .travis.yml
 yarn.lock
