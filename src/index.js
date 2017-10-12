@@ -1,22 +1,22 @@
 'use strict';
 
 const {
-    buildFields,
-    buildTypes
+  buildFields,
+  buildTypes
 } = require('./buildtypes');
 
 const {
-    GraphQLJSON
+  GraphQLJSON
 } = require('./jsontype');
 
 const {
-    getProjection
+  getProjection
 } = require('./projection');
 
 module.exports = {
-    buildFields,
-    buildTypes,
-    getProjection,
+  buildFields,
+  buildTypes,
+  getProjection,
 
-    GraphQLJSON
+  GraphQLJSON
 };
