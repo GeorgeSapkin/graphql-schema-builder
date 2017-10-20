@@ -43,6 +43,17 @@ const nop = () => {};
 
 const Asset = { name: 'Asset' };
 
+const AssetWithMeasurements = {
+  name: 'Asset',
+
+  fields: ({ ObjectId }) => ({
+    measurements: {
+      type: [ObjectId],
+      ref:  'Measurement'
+    }
+  })
+};
+
 const Customer = {
   name:        'Customer',
   description: 'A customer.',
@@ -144,8 +155,44 @@ const BadAssetNested = {
   }
 };
 
+const Measurement = {
+  name: 'Measurement'
+};
+
 const customerResolvers = {
   assets() {}
+};
+
+const assetResolvers = {
+  measurements: {
+    resolve() {}
+  }
+};
+
+const assetResolversWithArgs = {
+  measurements: {
+    args: {
+      resolution: {
+        type:     String,
+        required: true
+      }
+    },
+
+    resolve() {}
+  }
+};
+
+const assetResolversWithArgsAsFunc = {
+  measurements: {
+    args: () => ({
+      time: {
+        type:     Date,
+        required: false
+      }
+    }),
+
+    resolve() {}
+  }
 };
 
 const resolvers = {
@@ -153,7 +200,8 @@ const resolvers = {
 };
 
 const schemaStore = new Map([
-  [Asset.name, new GraphQLObjectType(Asset)]
+  [Asset.name,       new GraphQLObjectType(Asset)],
+  [Measurement.name, new GraphQLObjectType(Measurement)]
 ]);
 
 describe('getQLType', () => {
@@ -334,10 +382,10 @@ describe('getQLType', () => {
 });
 
 describe('buildFields', () => {
-  describe('should return', () => {
+  describe('should return a field schema', () => {
     const getExistingType = schemaStore.get.bind(schemaStore);
 
-    it('a field schema from object fields', () => {
+    it('from object fields', () => {
       const allFields = Object.assign(
         Customer.fields,
         Customer.dynamicFields({ ObjectId })
@@ -369,7 +417,7 @@ describe('buildFields', () => {
       );
     });
 
-    it('a field schema from function fields', () => {
+    it('from function fields', () => {
       deepStrictEqual(
         buildFields(Customer.dynamicFields, {
           getExistingType,
@@ -387,7 +435,73 @@ describe('buildFields', () => {
       );
     });
 
-    it('a field schema from nested fields', () => {
+    it('from a field with an object resolver without args', () => {
+      deepStrictEqual(
+        buildFields(AssetWithMeasurements.fields, {
+          getExistingType,
+
+          resolvers: assetResolvers
+        }), {
+          measurements: {
+            type: new GraphQLNonNull(new GraphQLList(
+              new GraphQLNonNull(schemaStore.get(Measurement.name))
+            )),
+
+            resolve: assetResolvers.measurements.resolve
+          }
+        }
+      );
+    });
+
+    it('from a field with an object resolver with object args', () => {
+      deepStrictEqual(
+        buildFields(AssetWithMeasurements.fields, {
+          getExistingType,
+
+          resolvers: assetResolversWithArgs
+        }), {
+          measurements: {
+            type: new GraphQLNonNull(new GraphQLList(
+              new GraphQLNonNull(schemaStore.get(Measurement.name))
+            )),
+
+            args: {
+              resolution: {
+                type: new GraphQLNonNull(GraphQLString)
+              }
+            },
+
+            resolve: assetResolversWithArgs.measurements.resolve
+          }
+        }
+      );
+    });
+
+    it('from a field with an object resolver with function args', () => {
+      deepStrictEqual(
+        buildFields(AssetWithMeasurements.fields, {
+          getExistingType,
+
+          resolvers: assetResolversWithArgsAsFunc
+        }), {
+          measurements: {
+            type: new GraphQLNonNull(new GraphQLList(
+              new GraphQLNonNull(schemaStore.get(Measurement.name))
+            )),
+
+            args: {
+              time: {
+                type: GraphQLDateTime
+              }
+            },
+
+            resolve: assetResolversWithArgsAsFunc.measurements.resolve
+          }
+        }
+      );
+    });
+
+    it('from nested fields', () => {
       const fields = buildFields(CustomerNested.fields);
       assert(fields.metadata.type instanceof GraphQLInputObjectType);
     });
@@ -485,7 +599,8 @@ describe('buildType', () => {
 
       assert(
         customerType._typeConfig.fields().metadata.type instanceof
-                    GraphQLInputObjectType);
+          GraphQLInputObjectType
+      );
     });
 
     it('a nested type schema with duplicate sub type', () => {

@@ -79,10 +79,10 @@ function buildFields(fields, {
   resolvers       = null
 } = {}) {
   assert(fields != null, 'fields must be set');
-  assert(buildSubType instanceof Function,
-    'buildSubType must be a function');
+  assert(buildSubType instanceof Function, 'buildSubType must be a function');
   assert(getExistingType instanceof Function,
-    'getExistingType must be a function');
+    'getExistingType must be a function'
+  );
 
   const _fields = (fields instanceof Function) ? fields(types) : fields;
 
@@ -112,7 +112,8 @@ function buildFields(fields, {
           const existingFields = existingType._typeConfig.fields;
 
           deepStrictEqual(fields, existingFields,
-            `Subtypes' fields with same name ${x} have to match`);
+            `Subtypes' fields with same name ${x} have to match`
+          );
 
           return existingType;
         }
@@ -128,11 +129,34 @@ function buildFields(fields, {
     })();
 
     const details = { type };
-    if (fieldData.description)
+
+    if (fieldData.description != null)
       details.description = fieldData.description;
 
     if (resolvers != null && resolvers[x] != null) {
-      details.resolve = resolvers[x];
+      // resolver can be either a function or an object
+      // if it's an object then it can have args and must have resolve
+      // args has the same format as a schema
+
+      const resolver = resolvers[x];
+
+      if (resolver instanceof Function) {
+        details.resolve = resolver;
+      }
+      else { // resolver is an object
+        assert(resolver.resolve instanceof Function,
+          'resolve must be a function when resolver is an object'
+        );
+
+        details.resolve = resolver.resolve;
+
+        // if resolver args are set process them as schema fields
+        if (resolver.args != null)
+          details.args = buildFields(resolver.args, {
+            buildSubType,
+            getExistingType
+          });
+      }
     }
 
     return { [x]: details };

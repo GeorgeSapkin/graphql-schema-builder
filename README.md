@@ -19,84 +19,84 @@ npm install --save graphql-schema-builder
 
 ```js
 const {
-    buildFields,
-    buildTypes,
-    getProjection,
+  buildFields,
+  buildTypes,
+  getProjection,
 
-    GraphQLJSON
+  GraphQLJSON
 } = require('graphql-schema-builder');
 
 function getSchema(resolvers, schema, { customerProvider }) {
-    // build types based on existing domain schemas and resolvers
-    const types = buildTypes({
-        Asset,
-        Customer,
-        Sensos
-    }, resolvers);
+  // build types based on existing domain schemas and resolvers
+  const types = buildTypes({
+    Asset,
+    Customer,
+    Sensor
+  }, resolvers);
 
-    const schemaStore = new Map;
+  const schemaStore = new Map;
 
-    function buildSubType({ name, fields }) {
-        const _name = `${name}Input`;
-        const newType = new GraphQLInputObjectType({ name: _name, fields });
-        schemaStore.set(_name, newType);
-        return newType;
-    }
+  function buildSubType({ name, fields }) {
+    const _name   = `${name}Input`;
+    const newType = new GraphQLInputObjectType({ name: _name, fields });
+    schemaStore.set(_name, newType);
+    return newType;
+  }
 
-    function getExistingType(name) {
-        return schemaStore.get(`${name}Input`);
-    }
+  function getExistingType(name) {
+      return schemaStore.get(`${name}Input`);
+  }
 
-    return new GraphQLSchema({
-        query: new GraphQLObjectType({
-            name: 'RootQueryType',
-            fields: {
-                customer: {
-                    type: types.Customer,
-                    args: {
-                        id: {
-                            name: 'id',
-                            type: new GraphQLNonNull(GraphQLID)
-                        }
-                    },
-
-                    resolve(_0, { id }, _1, fieldASTs) {
-                        const projection = getProjection(fieldASTs);
-                        return customerProvider.findById(id, projection);
-                    }
-                },
-                customers: {
-                    type: new GraphQLList(types.Customer),
-
-                    resolve(_0, {}, _1, fieldASTs) {
-                        const projection = getProjection(fieldASTs);
-                        return customerProvider.findAll(projection);
-                    }
-                }
+  return new GraphQLSchema({
+    query: new GraphQLObjectType({
+      name: 'RootQueryType',
+      fields: {
+        customer: {
+          type: types.Customer,
+          args: {
+            id: {
+              name: 'id',
+              type: new GraphQLNonNull(GraphQLID)
             }
-        }),
+          },
 
-        mutation: new GraphQLObjectType({
-            name: 'Mutation',
-            fields: {
-                createAsset: {
-                    type: types.Asset,
-                    // build arguments based on domain schemas instead of
-                    // specifying them manually
-                    args: buildFields(Asset.fields, {
-                        buildSubType,
-                        getExistingType
-                    }),
+          resolve(_0, { id }, _1, info) {
+            const projection = getProjection(info);
+            return customerProvider.findById(id, projection);
+          }
+        },
+        customers: {
+          type: new GraphQLList(types.Customer),
 
-                    resolve(obj, args, source, fieldASTs) {
-                        // create asset
-                    }
-                },
+          resolve(_0, {}, _1, info) {
+            const projection = getProjection(info);
+            return customerProvider.findAll(projection);
+          }
+        }
+      }
+    }),
 
-                /* more mutations, etc. */
+      mutation: new GraphQLObjectType({
+        name: 'Mutation',
+        fields: {
+          createAsset: {
+            type: types.Asset,
+            // build arguments based on domain schemas instead of
+            // specifying them manually
+            args: buildFields(Asset.fields, {
+              buildSubType,
+              getExistingType
+            }),
+
+            resolve(obj, args, source, info) {
+              // create asset
             }
-        })
-    });
+          },
+
+          /* more mutations, etc. */
+        }
+      })
+  });
 }
 
 ```
@@ -107,132 +107,153 @@ function getSchema(resolvers, schema, { customerProvider }) {
 
 ```js
 const schema = {
-    Asset: {
-        name:        'Asset',
-        description: 'An asset.',
+  Asset: {
+    name:        'Asset',
+    description: 'An asset.',
 
-        fields: ({ Mixed, ObjectId }) => ({
-            customer: {
-                description: 'Customer that this asset belongs to.',
+    fields: ({ Mixed, ObjectId }) => ({
+      customer: {
+        description: 'Customer that this asset belongs to.',
 
-                type:     ObjectId,
-                ref:      'Customer',
-                required: true
-            },
+        type:     ObjectId,
+        ref:      'Customer',
+        required: true
+      },
 
-            parent: {
-                type:     ObjectId,
-                ref:      'Asset',
-                required: false
-            },
+      parent: {
+        type:     ObjectId,
+        ref:      'Asset',
+        required: false
+      },
 
-            name: {
-                type:     String,
-                required: true
-            }
-        }),
+      name: {
+        type:     String,
+        required: true
+      }
+    }),
 
-        dynamicFields: ({ ObjectId }) => ({
-            sensors: {
-                type: [ObjectId],
-                ref:  'Sensor'
-            }
-        })
+    dynamicFields: ({ ObjectId }) => ({
+      sensors: {
+        type: [ObjectId],
+        ref:  'Sensor'
+      }
+    })
+  },
+
+  Customer: {
+    name:        'Customer',
+    description: 'A customer.',
+
+    fields: {
+      name: {
+        description: 'The name of the customer.',
+
+        type:     String,
+        required: true
+      },
+
+      // Will result in subtype
+      metadata: {
+        created: {
+            type:     Date,
+            required: true
+        }
+      }
     },
 
-    Customer: {
-        name:        'Customer',
-        description: 'A customer.',
+    dynamicFields: ({ Mixed, ObjectId }) => ({
+      assets: {
+        type: [ObjectId],
+        ref:  'Asset'
+      }
+    })
+  },
 
-        fields: {
-            name: {
-                description: 'The name of the customer.',
+  Sensor: {
+    name:        'Sensor',
+    description: 'A sensor that must be connected to an asset.',
 
-                type:     String,
-                required: true
-            },
+    fields: ({ Mixed, ObjectId }) => ({
+      externalId: {
+        type:     String,
+        required: false
+      },
 
-            // Will result in subtype
-            metadata: {
-                created: {
-                    type:     Date,
-                    required: true
-                }
-            }
-        },
+      asset: {
+        description: 'An asset that this sensor is connected to.',
 
-        dynamicFields: ({ Mixed, ObjectId }) => ({
-            assets: {
-                type: [ObjectId],
-                ref:  'Asset'
-            }
-        })
-    },
+        type:     ObjectId,
+        ref:      'Asset',
+        required: true
+      },
 
-    Sensor: {
-        name:        'Sensor',
-        description: 'A sensor that must be connected to an asset.',
-
-        fields: ({ Mixed, ObjectId }) => ({
-            externalId: {
-                type:     String,
-                required: false
-            },
-
-            asset: {
-                description: 'An asset that this sensor is connected to.',
-
-                type:     ObjectId,
-                ref:      'Asset',
-                required: true
-            },
-
-            name: {
-                type:     String,
-                required: false
-            }
-        })
-    }
+      name: {
+        type:     String,
+        required: false
+      }
+    })
+  }
 }
 ```
 
 ## Resolvers example
 
+A resolver can be either a function or an object. If it's an object it must have a `resolve()` function and can have `args` field. `args` has the same format as a schema. Matching arguments will be passed into the `args` argument of a resolver.
+
+See also:
+- [Root Fields & Resolvers](http://graphql.org/learn/execution/#root-fields-resolvers)
+- [Passing Arguments](http://graphql.org/graphql-js/passing-arguments/)
+
 ```js
 const resolvers = {
-    Asset: {
-        customer(obj, {}, _, fieldASTs) {
-            const projection = getProjection(fieldASTs);
-            return customerProvider.findById(obj.customer, projection);
-        },
-
-        parent(obj, {}, _, fieldASTs) {
-            if (obj.parent != null)
-                return null;
-
-            const projection = getProjection(fieldASTs);
-            return assetProvider.findById(obj.parent, projection);
-        },
-
-        sensors(obj, {}, _, fieldASTs) {
-            const projection = getProjection(fieldASTs);
-            return sensorProvider.find({ asset: obj.id }, projection);
-        }
+  Asset: {
+    customer(obj, {}, _, info) {
+      const projection = getProjection(info);
+      return customerProvider.findById(obj.customer, projection);
     },
 
-    Customer: {
-        assets(obj, {}, _, fieldASTs) {
-            const projection = getProjection(fieldASTs);
-            return assetProvider.find({ customer: obj.id }, projection);
-        }
+    parent(obj, {}, _, info) {
+      if (obj.parent != null)
+          return null;
+
+      const projection = getProjection(info);
+      return assetProvider.findById(obj.parent, projection);
     },
 
-    Sensor: {
-        asset(obj, {}, _, fieldASTs) {
-            const projection = getProjection(fieldASTs);
-            return assetProvider.findById(obj.parent, projection);
+    sensors(obj, {}, _, info) {
+      const projection = getProjection(info);
+      return sensorProvider.find({ asset: obj.id }, projection);
+    },
+
+    // resolver as an object
+    measurements: {
+      args: {
+        resolution: {
+          type:     String,
+          required: true
         }
+      },
+
+      resolve(obj, { resolution }, _, info) {
+        const projection = getProjection(info);
+        return measurementProvider.find({ resolution }, projection);
+      }
     }
+  },
+
+  Customer: {
+    assets(obj, {}, _, info) {
+      const projection = getProjection(info);
+      return assetProvider.find({ customer: obj.id }, projection);
+    }
+  },
+
+  Sensor: {
+    asset(obj, {}, _, info) {
+      const projection = getProjection(info);
+      return assetProvider.findById(obj.parent, projection);
+    }
+  }
 }
 ```
 

@@ -2,7 +2,7 @@
 coverage
 node_modules
 test
-.eslintrc.json
+.eslintrc
 .gitignore
 .gitlab-ci.yml
 .travis.yml
