@@ -1,6 +1,6 @@
 {
   "name": "graphql-schema-builder",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "GraphQL Schema Builder",
   "repository": "GeorgeSapkin/graphql-schema-builder",
   "main": "src/index.js",
@@ -24,12 +24,13 @@
     "eslint-plugin-node": "^5.1.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "jest": "^21.0.1"
+    "jest": "^21.0.1",
+    "sinon": "^4.0.1"
   },
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.js"
     ],
-    "testRegex": "./test/.*.js$"
+    "testRegex": "./test/.*.test.js$"
   }
 }

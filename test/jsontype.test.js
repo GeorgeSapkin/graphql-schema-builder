@@ -23,19 +23,19 @@ const {
 } = require('../src/jsontype');
 
 describe('GraphQLJSON', () => {
-  it('serialize should work', () => {
+  it('serialize works', () => {
     const obj = { a: 1 };
     strictEqual(GraphQLJSON.serialize(obj), obj);
   });
 
-  it('parseValue should work', () => {
+  it('parseValue works', () => {
     const obj = { a: 1 };
     strictEqual(GraphQLJSON.parseValue(obj), obj);
   });
 });
 
 describe('parseLiteral', () => {
-  describe('should return', () => {
+  describe('returns', () => {
     it('boolean value', () => {
       strictEqual(parseLiteral({
         kind:  BOOLEAN,

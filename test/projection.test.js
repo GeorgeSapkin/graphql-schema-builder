@@ -1,50 +1,46 @@
 'use strict';
 
 const {
-  deepStrictEqual
-} = require('assert');
-
-const {
   getProjection
 } = require('..');
 
 describe('getProjection', () => {
-  describe('should return empty', () => {
+  describe('returns empty', () => {
     it('when fieldASTs is not set', () => {
-      deepStrictEqual(getProjection(), {});
+      expect(getProjection()).toMatchObject({});
     });
 
     it('when fieldASTs.fieldNodes is not an array', () => {
-      deepStrictEqual(getProjection({}), {});
+      expect(getProjection({})).toMatchObject({});
     });
 
     it('when fieldASTs.fieldNodes is empty', () => {
-      deepStrictEqual(getProjection({ fieldNodes: [] }), {});
+      expect(getProjection({ fieldNodes: [] })).toMatchObject({});
     });
 
     it('when fieldASTs.fieldNodes[0].selectionSet is not set', () => {
-      deepStrictEqual(getProjection({ fieldNodes: [{}] }), {});
+      expect(getProjection({ fieldNodes: [{}] })).toMatchObject({});
     });
 
     it('when fieldASTs.fieldNodes[0].selectionSet.selections is not an array',
       () => {
-        deepStrictEqual(getProjection({ fieldNodes: [{
+        expect(getProjection({ fieldNodes: [{
           selectionSet: {}
-        }] }), {});
+        }] })).toMatchObject({});
       });
   });
 
-  describe('should return', () => {
+  describe('returns', () => {
     it('an empty object', () => {
-      deepStrictEqual(getProjection({ fieldNodes: [{
+      expect(getProjection({ fieldNodes: [{
         selectionSet: {
           selections: []
         }
-      }] }), {});
+      }] })).toMatchObject({});
     });
 
     it('a projection object', () => {
-      deepStrictEqual(getProjection({ fieldNodes: [{
+      expect(getProjection({ fieldNodes: [{
         selectionSet: {
           selections: [{
             name: {
@@ -56,7 +52,7 @@ describe('getProjection', () => {
             }
           }]
         }
-      }] }), {
+      }] })).toMatchObject({
         a: 1,
         b: 1
       });

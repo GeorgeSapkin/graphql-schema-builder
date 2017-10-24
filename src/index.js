@@ -1,7 +1,10 @@
 'use strict';
 
 const {
-  buildFields,
+  buildFields
+} = require('./buildfields');
+
+const {
   buildTypes
 } = require('./buildtypes');
 

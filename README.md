@@ -14,6 +14,12 @@ Type's `fields` can be used to build Mongoose schema by calling it with `mongoos
 ## Usage
 
 ```bash
+yarn add graphql-schema-builder
+```
+
+or
+
+```bash
 npm install --save graphql-schema-builder
 ```
 
@@ -266,6 +272,7 @@ const resolvers = {
 - Number
 - ObjectId
 - String
+- Custom GraphQL types passed to `buildTypes` through `getExistingType` argument
 
 ## Examples
 
