@@ -24,13 +24,15 @@ npm install --save graphql-schema-builder
 ```
 
 ```js
+const graphql = require('graphql');
+
 const {
   buildFields,
   buildTypes,
   getProjection,
 
   GraphQLJSON
-} = require('graphql-schema-builder');
+} = require('graphql-schema-builder')(graphql);
 
 function getSchema(resolvers, schema, { customerProvider }) {
   // build types based on existing domain schemas and resolvers

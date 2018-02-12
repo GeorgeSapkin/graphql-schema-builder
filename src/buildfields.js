@@ -6,19 +6,19 @@ const {
 } = require('assert');
 
 const {
-  GraphQLInputObjectType
-} = require('graphql');
-
-const {
   getQLType
 } = require('./getqltype');
+
+const {
+  memoize
+} = require('./memoize');
 
 const {
   types
 } = require('./types');
 
-function buildFields(fields, {
-  buildSubType    = x => new GraphQLInputObjectType(x),
+const buildFields = graphql => function _buildFields(fields, {
+  buildSubType    = x => new graphql.GraphQLInputObjectType(x),
   getExistingType = () => {},
   resolvers       = null
 } = {}) {
@@ -34,8 +34,8 @@ function buildFields(fields, {
     const fieldData = _fields[x];
 
     const type = (() => {
-      // if fieldData is an object, not an array and doesn't have type
-      // then assume it's a subtype
+      // if fieldData is an object, not an array and doesn't have type then
+      // assume it's a subtype
 
       if (fieldData instanceof Object &&
         !Array.isArray(fieldData) &&
@@ -46,7 +46,7 @@ function buildFields(fields, {
         fieldData.type == null
       ) {
         const existingType = getExistingType(x);
-        const fields = buildFields(fieldData, {
+        const fields = _buildFields(fieldData, {
           buildSubType,
           getExistingType,
           resolvers
@@ -56,7 +56,7 @@ function buildFields(fields, {
           const existingFields = existingType._typeConfig.fields;
 
           deepStrictEqual(fields, existingFields,
-            `Subtypes' fields with same name ${x} have to match`
+            `Subtypes' fields with same name \`${x}\` have to match`
           );
 
           return existingType;
@@ -66,10 +66,10 @@ function buildFields(fields, {
       }
       else if (fieldData.type != null)
       // figure out type based on type field
-        return getQLType(getExistingType, fieldData);
+        return getQLType(graphql)(getExistingType, fieldData);
       else
       // figure out type based fieldData
-        return getQLType(getExistingType, { type: fieldData });
+        return getQLType(graphql)(getExistingType, { type: fieldData });
     })();
 
     const details = { type };
@@ -96,7 +96,7 @@ function buildFields(fields, {
 
         // if resolver args are set process them as schema fields
         if (resolver.args != null)
-          details.args = buildFields(resolver.args, {
+          details.args = _buildFields(resolver.args, {
             buildSubType,
             getExistingType
           });
@@ -104,9 +104,9 @@ function buildFields(fields, {
     }
 
     return { [x]: details };
-  }).reduce((a, b) => Object.assign(a, b), {});
-}
+  }).reduce((a, b) => ({ ...a, ...b }), {});
+};
 
 module.exports = {
-  buildFields
+  buildFields: memoize(buildFields)
 };

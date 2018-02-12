@@ -1,12 +1,6 @@
 'use strict';
 
-const {
-  GraphQLFloat,
-  GraphQLInputObjectType,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLString
-} = require('graphql');
+const graphql = require('graphql');
 
 const {
   GraphQLDateTime
@@ -14,7 +8,7 @@ const {
 
 const {
   buildFields
-} = require('..');
+} = require('..')(graphql);
 
 const {
   Asset,
@@ -36,15 +30,23 @@ const {
   }
 } = require('../src/types');
 
+const {
+  GraphQLFloat,
+  GraphQLInputObjectType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLString
+} = graphql;
+
 describe('buildFields', () => {
   describe('returns a field schema', () => {
     const getExistingType = schemaStore.get.bind(schemaStore);
 
     it('from object fields', () => {
-      const allFields = Object.assign(
-        Customer.fields,
-        Customer.dynamicFields({ ObjectId })
-      );
+      const allFields = {
+        ...Customer.fields,
+        ...Customer.dynamicFields({ ObjectId })
+      };
 
       expect(
         buildFields(allFields, {

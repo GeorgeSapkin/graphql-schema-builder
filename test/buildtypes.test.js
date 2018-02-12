@@ -1,11 +1,6 @@
 'use strict';
 
-const {
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLString
-} = require('graphql');
+const graphql = require('graphql');
 
 const {
   spy
@@ -13,7 +8,7 @@ const {
 
 const {
   buildSubType: _buildSubType,
-  buildType
+  buildType:    _buildType
 } = require('../src/buildtypes');
 
 const {
@@ -26,7 +21,7 @@ const {
 const {
   buildTypes,
   GraphQLJSON
-} = require('..');
+} = require('..')(graphql);
 
 const {
   Asset,
@@ -42,6 +37,16 @@ const {
   nop,
   resolvers
 } = require('./fixtures');
+
+const {
+  GraphQLInputObjectType,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLString
+} = graphql;
+
+const buildSubType = _buildSubType(graphql);
+const buildType    = _buildType(graphql);
 
 describe('buildType', () => {
   describe('returns', () => {
@@ -217,9 +222,9 @@ describe('buildType', () => {
 describe('buildSubType', () => {
   it('returns type', () => {
     const localSchemaStore = new Map();
-    const buildSubType     = _buildSubType(localSchemaStore);
+    const __buildSubType   = buildSubType(localSchemaStore);
 
-    buildSubType(Customer);
+    __buildSubType(Customer);
 
     expect(
       localSchemaStore.get(Customer.name)
@@ -228,7 +233,7 @@ describe('buildSubType', () => {
     );
   });
 
-  it('throws without schemaStore', () => expect(_buildSubType).toThrow());
+  it('throws without schemaStore', () => expect(buildSubType).toThrow());
 });
 
 describe('buildTypes', () => {

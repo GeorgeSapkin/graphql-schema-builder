@@ -1,8 +1,10 @@
 'use strict';
 
+const graphql = require('graphql');
+
 const {
   getProjection
-} = require('..');
+} = require('..')(graphql);
 
 describe('getProjection', () => {
   describe('returns empty', () => {

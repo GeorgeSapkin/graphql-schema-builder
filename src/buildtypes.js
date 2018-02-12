@@ -5,29 +5,33 @@ const {
 } = require('assert');
 
 const {
-  GraphQLID,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLObjectType
-} = require('graphql');
-
-const {
   buildFields
 } = require('./buildfields');
+
+const {
+  memoize
+} = require('./memoize');
 
 const {
   types
 } = require('./types');
 
-function buildType(typeSchema, {
-  buildSubType    = x => new GraphQLInputObjectType(x),
+const buildType = graphql => (typeSchema, {
+  buildSubType    = x => new graphql.GraphQLInputObjectType(x),
   getExistingType = () => {},
   resolvers       = null
-} = {}) {
+} = {}) => {
   assert(typeSchema, 'typeSchema must be set');
   assert(typeSchema.name, 'typeSchema.name must be set');
   assert(getExistingType instanceof Function,
-    'getExistingType must be a function');
+    'getExistingType must be a function'
+  );
+
+  const {
+    GraphQLID,
+    GraphQLNonNull,
+    GraphQLObjectType
+  } = graphql;
 
   // fields is a function to resolve reference types dynamically
   function fields() {
@@ -40,21 +44,21 @@ function buildType(typeSchema, {
           ? fields(types)
           : fields;
       else
-        return Object.assign(
-          (fields instanceof Function)
+        return {
+          ...(fields instanceof Function)
             ? fields(types)
             : fields,
-          (dynamicFields instanceof Function)
+          ...(dynamicFields instanceof Function)
             ? dynamicFields(types)
             : dynamicFields
-        );
+        };
     })();
 
     const _resolvers = resolvers != null
       ? resolvers[typeSchema.name]
       : null;
 
-    const _fields = buildFields(dbFields, {
+    const _fields = buildFields(graphql)(dbFields, {
       buildSubType,
       getExistingType,
 
@@ -77,19 +81,21 @@ function buildType(typeSchema, {
     outTypeSchema.description = typeSchema.description;
 
   return new GraphQLObjectType(outTypeSchema);
-}
+};
 
-function buildSubType(schemaStore) {
+const buildSubType = graphql => schemaStore => {
   assert(schemaStore != null, 'schemaStore must be set');
 
   return ({ name, fields }) => {
-    const newType = new GraphQLObjectType({ name, fields });
+    const newType = new graphql.GraphQLObjectType({ name, fields });
     schemaStore.set(name, newType);
     return newType;
   };
-}
+};
 
-function buildTypes(schema, resolvers = null, getExistingType = null) {
+const buildTypes = graphql => (
+  schema, resolvers = null, getExistingType = null
+) => {
   assert(schema != null, 'schema must be set');
 
   const domainTypeNames = Object.getOwnPropertyNames(schema);
@@ -112,8 +118,8 @@ function buildTypes(schema, resolvers = null, getExistingType = null) {
   const _getExistingType = _schemaStore.get.bind(_schemaStore);
 
   const types = domainTypeNames.map(x => {
-    const type = buildType(schema[x], {
-      buildSubType: buildSubType(_schemaStore),
+    const type = buildType(graphql)(schema[x], {
+      buildSubType: buildSubType(graphql)(_schemaStore),
 
       getExistingType: _getExistingType,
       resolvers
@@ -128,11 +134,10 @@ function buildTypes(schema, resolvers = null, getExistingType = null) {
   }, {});
 
   return types;
-}
+};
 
 module.exports = {
-  buildTypes,
-
-  buildSubType,
-  buildType
+  buildSubType: memoize(buildSubType),
+  buildType:    memoize(buildType),
+  buildTypes:   memoize(buildTypes)
 };

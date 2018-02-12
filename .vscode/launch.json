@@ -13,14 +13,6 @@
                 "-i"
             ],
             "outFiles": []
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Port",
-            "address": "localhost",
-            "port": 5858,
-            "outFiles": []
         }
     ]
 }

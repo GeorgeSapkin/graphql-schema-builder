@@ -16,10 +16,14 @@ const {
   getProjection
 } = require('./projection');
 
-module.exports = {
-  buildFields,
-  buildTypes,
-  getProjection,
+function buildExports(graphql) {
+  return {
+    buildFields: buildFields(graphql),
+    buildTypes:  buildTypes(graphql),
+    GraphQLJSON: GraphQLJSON(graphql),
 
-  GraphQLJSON
-};
+    getProjection
+  };
+}
+
+module.exports = buildExports;

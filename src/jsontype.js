@@ -1,21 +1,21 @@
 'use strict';
 
 const {
-  GraphQLScalarType
-} = require('graphql');
+  memoize
+} = require('./memoize');
 
-const {
-  Kind: {
-    BOOLEAN,
-    FLOAT,
-    INT,
-    LIST,
-    OBJECT,
-    STRING
-  }
-} = require('graphql/language');
+const parseLiteral = graphql => function _parseLiteral(ast) {
+  const {
+    Kind: {
+      BOOLEAN,
+      FLOAT,
+      INT,
+      LIST,
+      OBJECT,
+      STRING
+    }
+  } = graphql;
 
-function parseLiteral(ast) {
   switch (ast.kind) {
     case BOOLEAN:
     case STRING:
@@ -26,12 +26,12 @@ function parseLiteral(ast) {
       return parseFloat(ast.value);
 
     case LIST:
-      return ast.values.map(parseLiteral);
+      return ast.values.map(_parseLiteral);
 
     case OBJECT: {
       const value = {};
       ast.fields.map(field => {
-        value[field.name.value] = parseLiteral(field.value);
+        value[field.name.value] = _parseLiteral(field.value);
       });
 
       return value;
@@ -40,18 +40,18 @@ function parseLiteral(ast) {
     default:
       return null;
   }
+};
+
+function GraphQLJSON(graphql) {
+  return new graphql.GraphQLScalarType({
+    name:         'JSON',
+    parseLiteral: parseLiteral(graphql),
+    parseValue:   a => a,
+    serialize:    a => a
+  });
 }
 
-const GraphQLJSON = new GraphQLScalarType({
-  name:       'JSON',
-  serialize:  a => a,
-  parseValue: a => a,
-
-  parseLiteral
-});
-
 module.exports = {
-  GraphQLJSON,
-
-  parseLiteral
+  GraphQLJSON:  memoize(GraphQLJSON),
+  parseLiteral: memoize(parseLiteral)
 };

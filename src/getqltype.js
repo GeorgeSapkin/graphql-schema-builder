@@ -5,15 +5,6 @@ const {
 } = require('assert');
 
 const {
-  GraphQLBoolean,
-  GraphQLFloat,
-  GraphQLID,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLString
-} = require('graphql');
-
-const {
   GraphQLDateTime
 } = require('graphql-iso-date');
 
@@ -22,62 +13,61 @@ const {
 } = require('./jsontype');
 
 const {
+  memoize
+} = require('./memoize');
+
+const {
   types: {
     Mixed,
     ObjectId
   }
 } = require('./types');
 
-function getQLType(getExistingType, { type, ref, required = true }) {
+const getQLType = graphql => function _getQLType(
+  getExistingType, { type, ref, required = true }
+) {
   assert(getExistingType instanceof Function,
     'getExistingType must be a function'
   );
   assert(type != null, 'type must be set');
 
-  if (type === String) {
-    return required ? new GraphQLNonNull(GraphQLString) : GraphQLString;
-  }
-  else if (type === Number) {
-    return required ? new GraphQLNonNull(GraphQLFloat) : GraphQLFloat;
-  }
-  else if (type === Date) {
-    return required ? new GraphQLNonNull(GraphQLDateTime) : GraphQLDateTime;
-  }
-  else if (type === Boolean) {
-    return required ? new GraphQLNonNull(GraphQLBoolean) : GraphQLBoolean;
-  }
-  else if (type === Mixed) {
-    return required ? new GraphQLNonNull(GraphQLJSON) : GraphQLJSON;
-  }
-  else if (type === ObjectId) {
-    const refType = getExistingType(ref) || GraphQLID;
-    return required ? new GraphQLNonNull(refType) : refType;
-  }
-  else if (typeof type === 'string') {
-    const refType = getExistingType(type);
-    assert(refType, `Failed to find existing type ${type}`);
-    return required ? new GraphQLNonNull(refType) : refType;
-  }
-  else if (Array.isArray(type)) {
-    const subType = type[0];
+  const graphQlType = (() => {
+    if (type === String)
+      return graphql.GraphQLString;
+    else if (type === Number)
+      return graphql.GraphQLFloat;
+    else if (type === Date)
+      return GraphQLDateTime;
+    else if (type === Boolean)
+      return graphql.GraphQLBoolean;
+    else if (type === Mixed)
+      return GraphQLJSON(graphql);
+    else if (type === ObjectId)
+      return getExistingType(ref) || graphql.GraphQLID;
+    else if (typeof type === 'string') {
+      const refType = getExistingType(type);
+      assert(refType, `Failed to find existing type ${type}`);
+      return refType;
+    }
+    else if (Array.isArray(type))
+      return new graphql.GraphQLList(_getQLType(
+        getExistingType, type[0].type != null
+          ? type[0]
+          : {
+            type: type[0],
+            ref
+          }
+      ));
+    else
+      return null;
+  })();
 
-    if (subType.type != null) {
-      const listType = new GraphQLList(getQLType(
-        getExistingType, subType));
-      return required ? new GraphQLNonNull(listType) : listType;
-    }
-    else {
-      const listType = new GraphQLList(getQLType(getExistingType, {
-        type: subType,
-        ref
-      }));
-      return required ? new GraphQLNonNull(listType) : listType;
-    }
-  }
-  else
+  if (graphQlType == null)
     return null;
-}
+
+  return required ? new graphql.GraphQLNonNull(graphQlType) : graphQlType;
+};
 
 module.exports = {
-  getQLType
+  getQLType: memoize(getQLType)
 };

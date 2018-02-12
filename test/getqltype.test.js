@@ -1,14 +1,6 @@
 'use strict';
 
-const {
-  GraphQLBoolean,
-  GraphQLFloat,
-  GraphQLID,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLString
-} = require('graphql');
+const graphql = require('graphql');
 
 const {
   GraphQLDateTime
@@ -22,11 +14,11 @@ const {
 } = require('../src/types');
 
 const {
-  getQLType
+  getQLType: _getQLType
 } = require('../src/getqltype');
 
 const {
-  GraphQLJSON
+  GraphQLJSON: _GraphQLJSON
 } = require('../src/jsontype');
 
 const {
@@ -34,6 +26,19 @@ const {
   nop,
   schemaStore
 } = require('./fixtures');
+
+const {
+  GraphQLBoolean,
+  GraphQLFloat,
+  GraphQLID,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLString
+} = graphql;
+
+const getQLType   = _getQLType(graphql);
+const GraphQLJSON = _GraphQLJSON(graphql);
 
 describe('getQLType', () => {
   describe('returns', () => {

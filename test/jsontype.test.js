@@ -1,9 +1,6 @@
 'use strict';
 
-const {
-  deepStrictEqual,
-  strictEqual
-} = require('assert');
+const graphql = require('graphql');
 
 const {
   Kind: {
@@ -14,58 +11,60 @@ const {
     OBJECT,
     STRING
   }
-} = require('graphql/language');
+} = graphql;
 
 const {
-  GraphQLJSON,
+  GraphQLJSON: _GraphQLJSON,
 
-  parseLiteral
+  parseLiteral: _parseLiteral
 } = require('../src/jsontype');
 
+const GraphQLJSON  = _GraphQLJSON(graphql);
+const parseLiteral = _parseLiteral(graphql);
+
 describe('GraphQLJSON', () => {
+  const obj = { a: 1 };
   it('serialize works', () => {
-    const obj = { a: 1 };
-    strictEqual(GraphQLJSON.serialize(obj), obj);
+    expect(GraphQLJSON.serialize(obj)).toMatchObject(obj);
   });
 
   it('parseValue works', () => {
-    const obj = { a: 1 };
-    strictEqual(GraphQLJSON.parseValue(obj), obj);
+    expect(GraphQLJSON.parseValue(obj)).toMatchObject(obj);
   });
 });
 
 describe('parseLiteral', () => {
   describe('returns', () => {
     it('boolean value', () => {
-      strictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:  BOOLEAN,
         value: true
-      }), true);
+      })).toBeTruthy();
     });
 
     it('string value', () => {
-      strictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:  BOOLEAN,
         value: 'abc'
-      }), 'abc');
+      })).toBe('abc');
     });
 
     it('float value when FLOAT', () => {
-      strictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:  FLOAT,
         value: '1.23'
-      }), 1.23);
+      })).toBe(1.23);
     });
 
     it('float value when INT', () => {
-      strictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:  INT,
         value: '1'
-      }), 1);
+      })).toBe(1);
     });
 
     it('list value', () => {
-      deepStrictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:  LIST,
         values: [{
           kind:  FLOAT,
@@ -74,11 +73,11 @@ describe('parseLiteral', () => {
           kind:  STRING,
           value: 'abc'
         }]
-      }), [1.23, 'abc']);
+      })).toMatchObject([1.23, 'abc']);
     });
 
     it('object value', () => {
-      deepStrictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:   OBJECT,
         fields: [{
           name: {
@@ -105,7 +104,7 @@ describe('parseLiteral', () => {
             }]
           }
         }]
-      }), {
+      })).toMatchObject({
         a: 'abc',
         b: {
           c: false
@@ -114,10 +113,10 @@ describe('parseLiteral', () => {
     });
 
     it('null', () => {
-      strictEqual(parseLiteral({
+      expect(parseLiteral({
         kind:  123,
         value: 456
-      }), null);
+      })).toBeNull();
     });
   });
 });
