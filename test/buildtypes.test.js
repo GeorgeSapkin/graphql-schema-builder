@@ -26,6 +26,9 @@ const {
 const {
   Asset,
   AssetNested,
+  AssetNestedType,
+  AssetNestedArray,
+  AssetNestedArrayType,
   BadAssetNested,
   Customer,
   CustomerFunNoDyn,
@@ -40,6 +43,7 @@ const {
 
 const {
   GraphQLInputObjectType,
+  GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLString
@@ -177,6 +181,62 @@ describe('buildType', () => {
         assetType._typeConfig.fields().metadata
       ).toMatchObject(
         customerType._typeConfig.fields().metadata
+      );
+    });
+
+    it('a nested type schema provided via the type property', () => {
+      const localSchemaStore = new Map();
+
+      function buildSubType(type) {
+        const newType = new GraphQLObjectType(type);
+        localSchemaStore.set(type.name, newType);
+        return newType;
+      }
+
+      const getExistingType = localSchemaStore.get.bind(localSchemaStore);
+
+      // nested type
+      const assetType = buildType(AssetNestedType, {
+        buildSubType,
+        getExistingType
+      });
+
+      expect(assetType.name).toBe(AssetNestedType.name);
+      expect(assetType._typeConfig.fields).toBeInstanceOf(Function);
+
+      expect(
+        assetType._typeConfig.fields().metadata.type
+      ).toBeInstanceOf(
+        GraphQLObjectType
+      );
+
+      // nested list of object types
+      const assetArrayType = buildType(AssetNestedArrayType, {
+        buildSubType,
+        getExistingType
+      });
+
+      expect(assetArrayType.name).toBe(AssetNestedType.name);
+      expect(assetArrayType._typeConfig.fields).toBeInstanceOf(Function);
+
+      expect(
+        assetArrayType._typeConfig.fields().metadatas.type
+      ).toBeInstanceOf(
+        GraphQLList
+      );
+
+      const assetArray = buildType(AssetNestedArray, {
+        buildSubType,
+        getExistingType
+      });
+
+      expect(assetArray.name).toBe(AssetNestedType.name);
+      expect(assetArray._typeConfig.fields).toBeInstanceOf(Function);
+
+      expect(
+        assetArray._typeConfig.fields().metadatas.type
+      ).toBeInstanceOf(
+        GraphQLList
       );
     });
   });
