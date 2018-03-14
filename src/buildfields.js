@@ -10,8 +10,8 @@ const {
 } = require('./getqltype');
 
 const {
-  isSubType
-} = require('./issubtype');
+  getSubType
+} = require('./subtype');
 
 const {
   memoize
@@ -21,6 +21,8 @@ const {
   types
 } = require('./types');
 
+// Uppercase the first letter and remove final 's' if there is any
+// TODO: handle edge cases
 const getSubTypeName = name =>
   `${name[0].toUpperCase()}${name.slice(1)}`.replace(/s\b/, '');
 
@@ -38,13 +40,15 @@ const buildFields = graphql => function _buildFields(fields, {
   const _fields = (fields instanceof Function) ? fields(types) : fields;
 
   const buildSubFields = (fieldData, name) => {
-    const existingType = getExistingType(name);
+    // build fields of subtypes recursively
     const fields = _buildFields(fieldData, {
       buildSubType,
       getExistingType,
       resolvers
     });
 
+    // if a type of that name already exists, check if fields data is consistent
+    const existingType = getExistingType(name);
     if (existingType != null) {
       const existingFields = existingType._typeConfig.fields;
 
@@ -61,26 +65,27 @@ const buildFields = graphql => function _buildFields(fields, {
   return Object.getOwnPropertyNames(_fields).map(x => {
     const fieldData = _fields[x];
 
+    // assume objects without a type property to be subtypes
+    const subType = getSubType(fieldData);
+
     const type = (() => {
-      if (isSubType(fieldData) || (fieldData.type && isSubType(fieldData.type)))
-        return buildSubFields(fieldData, x);
-      else if (
-        fieldData.type &&
-        Array.isArray(fieldData.type) &&
-        isSubType(fieldData.type[0])
-      ) {
-        const name = getSubTypeName(x);
-        const _type = buildSubFields(fieldData.type[0], name);
-        return new graphql.GraphQLList(
-          fieldData.required === false
-            ? _type
-            : new graphql.GraphQLNonNull(_type)
-        );
-      }
-      else if (Array.isArray(fieldData) && isSubType(fieldData[0])) {
-        const name = getSubTypeName(x);
-        const _type = buildSubFields(fieldData[0], name);
-        return new graphql.GraphQLList(new graphql.GraphQLNonNull(_type));
+      if (subType) {
+        if (!Array.isArray(subType)) {
+          return buildSubFields(subType, x);
+        }
+        else {
+          // if the subtype is enclosed in an array, build a GraphQLList
+          // NB: the keys for arrays of subtypes are assumed to be consistent
+          // with the name of the subtype, e.g. assets: [Asset]
+          const name = getSubTypeName(x);
+          const _type = buildSubFields(subType[0], name);
+
+          return new graphql.GraphQLList(
+            fieldData.required === false
+              ? _type
+              : new graphql.GraphQLNonNull(_type)
+          );
+        }
       }
       else if (fieldData.type != null)
       // figure out type based on type field

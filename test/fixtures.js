@@ -146,7 +146,8 @@ const AssetNestedArrayType = {
           type:     Date,
           required: true
         }
-      }]
+      }],
+      required: false
     }
   }
 };

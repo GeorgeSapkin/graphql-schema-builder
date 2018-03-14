@@ -184,7 +184,7 @@ describe('buildType', () => {
       );
     });
 
-    it('a nested type schema provided via the type property', () => {
+    it('a nested subtype provided via the type property', () => {
       const localSchemaStore = new Map();
 
       function buildSubType(type) {
@@ -209,21 +209,18 @@ describe('buildType', () => {
       ).toBeInstanceOf(
         GraphQLObjectType
       );
+    });
 
-      // nested list of object types
-      const assetArrayType = buildType(AssetNestedArrayType, {
-        buildSubType,
-        getExistingType
-      });
+    it('a nested array of subtype', () => {
+      const localSchemaStore = new Map();
 
-      expect(assetArrayType.name).toBe(AssetNestedType.name);
-      expect(assetArrayType._typeConfig.fields).toBeInstanceOf(Function);
+      function buildSubType(type) {
+        const newType = new GraphQLObjectType(type);
+        localSchemaStore.set(type.name, newType);
+        return newType;
+      }
 
-      expect(
-        assetArrayType._typeConfig.fields().metadatas.type
-      ).toBeInstanceOf(
-        GraphQLList
-      );
+      const getExistingType = localSchemaStore.get.bind(localSchemaStore);
 
       const assetArray = buildType(AssetNestedArray, {
         buildSubType,
@@ -235,6 +232,32 @@ describe('buildType', () => {
 
       expect(
         assetArray._typeConfig.fields().metadatas.type
+      ).toBeInstanceOf(
+        GraphQLList
+      );
+    });
+
+    it('a nested array of subtype provided via the type property', () => {
+      const localSchemaStore = new Map();
+
+      function buildSubType(type) {
+        const newType = new GraphQLObjectType(type);
+        localSchemaStore.set(type.name, newType);
+        return newType;
+      }
+
+      const getExistingType = localSchemaStore.get.bind(localSchemaStore);
+
+      const assetArrayType = buildType(AssetNestedArrayType, {
+        buildSubType,
+        getExistingType
+      });
+
+      expect(assetArrayType.name).toBe(AssetNestedType.name);
+      expect(assetArrayType._typeConfig.fields).toBeInstanceOf(Function);
+
+      expect(
+        assetArrayType._typeConfig.fields().metadatas.type
       ).toBeInstanceOf(
         GraphQLList
       );
