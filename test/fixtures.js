@@ -108,6 +108,50 @@ const AssetNested = {
   }
 };
 
+const AssetNestedArray = {
+  name: 'Asset',
+
+  fields: {
+    metadatas: [{
+      created: {
+        type:     Date,
+        required: true
+      }
+    }]
+  }
+};
+
+const AssetNestedType = {
+  name: 'Asset',
+
+  fields: {
+    metadata: {
+      type: {
+        created: {
+          type:     Date,
+          required: true
+        }
+      }
+    }
+  }
+};
+
+const AssetNestedArrayType = {
+  name: 'Asset',
+
+  fields: {
+    metadatas: {
+      type: [{
+        created: {
+          type:     Date,
+          required: true
+        }
+      }],
+      required: false
+    }
+  }
+};
+
 const BadAssetNested = {
   name: 'Asset',
 
@@ -172,6 +216,9 @@ const schemaStore = new Map([
 module.exports = {
   Asset,
   AssetNested,
+  AssetNestedType,
+  AssetNestedArray,
+  AssetNestedArrayType,
   assetResolvers,
   assetResolversWithArgs,
   assetResolversWithArgsAsFunc,

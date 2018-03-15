@@ -10,12 +10,21 @@ const {
 } = require('./getqltype');
 
 const {
+  getSubType
+} = require('./subtype');
+
+const {
   memoize
 } = require('./memoize');
 
 const {
   types
 } = require('./types');
+
+// Uppercase the first letter and remove final 's' if there is any
+// TODO: handle edge cases
+const getSubTypeName = name =>
+  `${name[0].toUpperCase()}${name.slice(1)}`.replace(/s\b/, '');
 
 const buildFields = graphql => function _buildFields(fields, {
   buildSubType    = x => new graphql.GraphQLInputObjectType(x),
@@ -30,45 +39,59 @@ const buildFields = graphql => function _buildFields(fields, {
 
   const _fields = (fields instanceof Function) ? fields(types) : fields;
 
+  const buildSubFields = (fieldData, name) => {
+    // build fields of subtypes recursively
+    const fields = _buildFields(fieldData, {
+      buildSubType,
+      getExistingType,
+      resolvers
+    });
+
+    // if a type of that name already exists, check if fields data is consistent
+    const existingType = getExistingType(name);
+    if (existingType != null) {
+      const existingFields = existingType._typeConfig.fields;
+
+      deepStrictEqual(fields, existingFields,
+        `Subtypes' fields with same name \`${name}\` have to match`
+      );
+
+      return existingType;
+    }
+    else
+      return buildSubType({ name, fields });
+  };
+
   return Object.getOwnPropertyNames(_fields).map(x => {
     const fieldData = _fields[x];
 
+    // assume objects without a type property to be subtypes
+    const subType = getSubType(fieldData);
+
     const type = (() => {
-      // if fieldData is an object, not an array and doesn't have type then
-      // assume it's a subtype
-
-      if (fieldData instanceof Object &&
-        !Array.isArray(fieldData) &&
-        fieldData !== Number &&
-        fieldData !== String &&
-        fieldData !== types.Mixed &&
-        fieldData !== types.ObjectId &&
-        fieldData.type == null
-      ) {
-        const existingType = getExistingType(x);
-        const fields = _buildFields(fieldData, {
-          buildSubType,
-          getExistingType,
-          resolvers
-        });
-
-        if (existingType != null) {
-          const existingFields = existingType._typeConfig.fields;
-
-          deepStrictEqual(fields, existingFields,
-            `Subtypes' fields with same name \`${x}\` have to match`
-          );
-
-          return existingType;
+      if (subType) {
+        if (!Array.isArray(subType)) {
+          return buildSubFields(subType, x);
         }
-        else
-          return buildSubType({ name: x, fields });
+        else {
+          // if the subtype is enclosed in an array, build a GraphQLList
+          // NB: the keys for arrays of subtypes are assumed to be consistent
+          // with the name of the subtype, e.g. assets: [Asset]
+          const name = getSubTypeName(x);
+          const _type = buildSubFields(subType[0], name);
+
+          return new graphql.GraphQLList(
+            fieldData.required === false
+              ? _type
+              : new graphql.GraphQLNonNull(_type)
+          );
+        }
       }
       else if (fieldData.type != null)
       // figure out type based on type field
         return getQLType(graphql)(getExistingType, fieldData);
       else
-      // figure out type based fieldData
+      // figure out type based on fieldData
         return getQLType(graphql)(getExistingType, { type: fieldData });
     })();
 
