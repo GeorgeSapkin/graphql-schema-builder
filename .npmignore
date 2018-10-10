@@ -1,9 +1,8 @@
-.vscode
-coverage
-node_modules
-test
+.vscode/
+coverage/
+node_modules/
+__tests__/
 .eslintrc
 .gitignore
 .gitlab-ci.yml
 .travis.yml
-yarn.lock

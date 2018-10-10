@@ -31,7 +31,9 @@ const Customer = {
       required: true
     },
 
-    value: Number
+    value: {
+      type: Number
+    }
   },
 
   dynamicFields: ({ ObjectId }) => ({
@@ -210,6 +212,7 @@ const resolvers = {
 
 const schemaStore = new Map([
   [Asset.name,       new GraphQLObjectType(Asset)],
+  [Customer.name,    new GraphQLObjectType(Customer)],
   [Measurement.name, new GraphQLObjectType(Measurement)]
 ]);
 

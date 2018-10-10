@@ -9,26 +9,26 @@ const {
 describe('getProjection', () => {
   describe('returns empty', () => {
     it('when fieldASTs is not set', () => {
-      expect(getProjection()).toMatchObject({});
+      expect(getProjection()).toMatchSnapshot();
     });
 
     it('when fieldASTs.fieldNodes is not an array', () => {
-      expect(getProjection({})).toMatchObject({});
+      expect(getProjection({})).toMatchSnapshot();
     });
 
     it('when fieldASTs.fieldNodes is empty', () => {
-      expect(getProjection({ fieldNodes: [] })).toMatchObject({});
+      expect(getProjection({ fieldNodes: [] })).toMatchSnapshot();
     });
 
     it('when fieldASTs.fieldNodes[0].selectionSet is not set', () => {
-      expect(getProjection({ fieldNodes: [{}] })).toMatchObject({});
+      expect(getProjection({ fieldNodes: [{}] })).toMatchSnapshot();
     });
 
     it('when fieldASTs.fieldNodes[0].selectionSet.selections is not an array',
       () => {
         expect(getProjection({ fieldNodes: [{
           selectionSet: {}
-        }] })).toMatchObject({});
+        }] })).toMatchSnapshot();
       });
   });
 
@@ -38,7 +38,7 @@ describe('getProjection', () => {
         selectionSet: {
           selections: []
         }
-      }] })).toMatchObject({});
+      }] })).toMatchSnapshot();
     });
 
     it('a projection object', () => {
@@ -54,10 +54,7 @@ describe('getProjection', () => {
             }
           }]
         }
-      }] })).toMatchObject({
-        a: 1,
-        b: 1
-      });
+      }] })).toMatchSnapshot();
     });
   });
 });

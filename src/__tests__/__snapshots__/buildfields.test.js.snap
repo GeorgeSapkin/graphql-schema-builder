@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`buildFields returns a field schema from a field with an object resolver with function args 1`] = `
+Object {
+  "measurements": Object {
+    "args": Object {
+      "time": Object {
+        "type": "DateTime",
+      },
+    },
+    "resolve": [Function],
+    "type": "[Measurement!]!",
+  },
+}
+`;
+
+exports[`buildFields returns a field schema from a field with an object resolver with object args 1`] = `
+Object {
+  "measurements": Object {
+    "args": Object {
+      "resolution": Object {
+        "type": "String!",
+      },
+    },
+    "resolve": [Function],
+    "type": "[Measurement!]!",
+  },
+}
+`;
+
+exports[`buildFields returns a field schema from a field with an object resolver without args 1`] = `
+Object {
+  "measurements": Object {
+    "resolve": [Function],
+    "type": "[Measurement!]!",
+  },
+}
+`;
+
+exports[`buildFields returns a field schema from function fields 1`] = `
+Object {
+  "assets": Object {
+    "resolve": [Function],
+    "type": "[Asset!]!",
+  },
+}
+`;
+
+exports[`buildFields returns a field schema from nested fields 1`] = `"metadata"`;
+
+exports[`buildFields returns a field schema from object fields 1`] = `
+Object {
+  "assets": Object {
+    "resolve": [Function],
+    "type": "[Asset!]!",
+  },
+  "name": Object {
+    "description": "The name of the customer.",
+    "type": "String!",
+  },
+  "value": Object {
+    "type": "Float!",
+  },
+}
+`;

@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`buildType returns a nested type schema with duplicate sub type 1`] = `"Asset"`;
+
+exports[`buildType returns a nested type schema with duplicate sub type 2`] = `"Customer"`;
+
+exports[`buildType returns a nested type schema with duplicate sub type 3`] = `
+Object {
+  "args": Array [],
+  "isDeprecated": false,
+  "name": "metadata",
+  "type": "metadata",
+}
+`;
+
+exports[`types Mixed should work 1`] = `"Mixed"`;
+
+exports[`types ObjectId should work 1`] = `"ObjectId"`;

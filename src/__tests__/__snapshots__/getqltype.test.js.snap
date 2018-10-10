@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getQLType returns [Boolean]! 1`] = `"[Boolean]!"`;
+
+exports[`getQLType returns [Float!] 1`] = `"[Float!]"`;
+
+exports[`getQLType returns [String]! 1`] = `"[String!]"`;
+
+exports[`getQLType returns [refType!]! 1`] = `"[Asset!]!"`;
+
+exports[`getQLType returns [stringType!]! 1`] = `"[Asset!]!"`;
+
+exports[`getQLType returns Boolean 1`] = `"Boolean"`;
+
+exports[`getQLType returns Boolean! 1`] = `"Boolean!"`;
+
+exports[`getQLType returns DateTime 1`] = `"DateTime"`;
+
+exports[`getQLType returns Float 1`] = `"Float"`;
+
+exports[`getQLType returns Float! 1`] = `"Float!"`;
+
+exports[`getQLType returns ID 1`] = `"ID"`;
+
+exports[`getQLType returns ID! 1`] = `"ID!"`;
+
+exports[`getQLType returns ID! 2`] = `"ID!"`;
+
+exports[`getQLType returns JSON 1`] = `"JSON"`;
+
+exports[`getQLType returns JSON! 1`] = `"JSON!"`;
+
+exports[`getQLType returns String 1`] = `"String"`;
+
+exports[`getQLType returns String! 1`] = `"String!"`;
+
+exports[`getQLType returns null 1`] = `null`;
+
+exports[`getQLType returns refType 1`] = `"Asset"`;
+
+exports[`getQLType returns refType! 1`] = `"Asset!"`;
+
+exports[`getQLType returns stringType 1`] = `"Asset"`;
+
+exports[`getQLType returns stringType! 1`] = `"Asset!"`;

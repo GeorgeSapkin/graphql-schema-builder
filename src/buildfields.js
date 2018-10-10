@@ -26,6 +26,13 @@ const {
 const getSubTypeName = name =>
   `${name[0].toUpperCase()}${name.slice(1)}`.replace(/s\b/, '');
 
+const getMatchingFields = fields => Object.entries(fields).reduce(
+  (obj, [k, v]) => {
+    obj[k] = { type: v.type };
+    return obj;
+  }, {}
+);
+
 const buildFields = graphql => function _buildFields(fields, {
   buildSubType    = x => new graphql.GraphQLInputObjectType(x),
   getExistingType = () => {},
@@ -47,12 +54,19 @@ const buildFields = graphql => function _buildFields(fields, {
       resolvers
     });
 
-    // if a type of that name already exists, check if fields data is consistent
+    // if a type of that name already exists, check if fields are consistent
     const existingType = getExistingType(name);
     if (existingType != null) {
-      const existingFields = existingType._typeConfig.fields;
+      // pick only relevant type properties for comparison
+      // NB: is not recursive, so expects subtype to be one-level deep
+      const _existingFields = getMatchingFields(
+        existingType._fields instanceof Function
+          ? existingType._fields()
+          : existingType._fields
+      );
+      const __fields = getMatchingFields(fields);
 
-      deepStrictEqual(fields, existingFields,
+      deepStrictEqual(__fields, _existingFields,
         `Subtypes' fields with same name \`${name}\` have to match`
       );
 

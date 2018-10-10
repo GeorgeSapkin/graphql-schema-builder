@@ -1,6 +1,6 @@
 {
   "name": "graphql-schema-builder",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "GraphQL Schema Builder",
   "repository": "GeorgeSapkin/graphql-schema-builder",
   "main": "src/index.js",
@@ -14,23 +14,27 @@
   "author": "George Sapkin",
   "license": "MIT",
   "dependencies": {
-    "graphql-iso-date": "^3.5.0"
+    "graphql-iso-date": "^3.6.1"
   },
   "devDependencies": {
-    "eslint": "^4.2.0",
-    "eslint-config-standard": "^11.0.0-beta.0",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-node": "^6.0.0",
-    "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-standard": "^3.0.1",
-    "graphql": "^0.13.0",
-    "jest": "^21.0.0",
-    "sinon": "^4.0.1"
+    "eslint": "^5.6.1",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "graphql": "^14.0.2",
+    "jest": "^23.6.0"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0"
   },
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.js"
     ],
-    "testRegex": "./test/.*.test.js$"
+    "testPathIgnorePatterns": [
+      "/src/__tests__/__fixtures__/"
+    ]
   }
 }

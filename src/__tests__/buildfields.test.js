@@ -3,15 +3,10 @@
 const graphql = require('graphql');
 
 const {
-  GraphQLDateTime
-} = require('graphql-iso-date');
-
-const {
   buildFields
 } = require('..')(graphql);
 
 const {
-  Asset,
   assetResolvers,
   assetResolversWithArgs,
   assetResolversWithArgsAsFunc,
@@ -19,24 +14,15 @@ const {
   Customer,
   CustomerNested,
   customerResolvers,
-  Measurement,
   nop,
   schemaStore
-} = require('./fixtures');
+} = require('./__fixtures__');
 
 const {
   types: {
     ObjectId
   }
-} = require('../src/types');
-
-const {
-  GraphQLFloat,
-  GraphQLInputObjectType,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLString
-} = graphql;
+} = require('../types');
 
 describe('buildFields', () => {
   describe('returns a field schema', () => {
@@ -54,25 +40,7 @@ describe('buildFields', () => {
 
           resolvers: customerResolvers
         })
-      ).toMatchObject({
-        name: {
-          description: 'The name of the customer.',
-          type:        new GraphQLNonNull(GraphQLString)
-        },
-
-        value: {
-          type: new GraphQLNonNull(GraphQLFloat)
-        },
-
-        assets: {
-          type: new GraphQLNonNull(new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Asset.name))
-          )),
-
-          resolve: customerResolvers.assets
-        }
-      }
-      );
+      ).toMatchSnapshot();
     });
 
     it('from function fields', () => {
@@ -82,16 +50,7 @@ describe('buildFields', () => {
 
           resolvers: customerResolvers
         })
-      ).toMatchObject({
-        assets: {
-          type: new GraphQLNonNull(new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Asset.name))
-          )),
-
-          resolve: customerResolvers.assets
-        }
-      }
-      );
+      ).toMatchSnapshot();
     });
 
     it('from a field with an object resolver without args', () => {
@@ -101,16 +60,7 @@ describe('buildFields', () => {
 
           resolvers: assetResolvers
         })
-      ).toMatchObject({
-        measurements: {
-          type: new GraphQLNonNull(new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Measurement.name))
-          )),
-
-          resolve: assetResolvers.measurements.resolve
-        }
-      }
-      );
+      ).toMatchSnapshot();
     });
 
     it('from a field with an object resolver with object args', () => {
@@ -120,22 +70,7 @@ describe('buildFields', () => {
 
           resolvers: assetResolversWithArgs
         })
-      ).toMatchObject({
-        measurements: {
-          type: new GraphQLNonNull(new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Measurement.name))
-          )),
-
-          args: {
-            resolution: {
-              type: new GraphQLNonNull(GraphQLString)
-            }
-          },
-
-          resolve: assetResolversWithArgs.measurements.resolve
-        }
-      }
-      );
+      ).toMatchSnapshot();
     });
 
     it('from a field with an object resolver with function args', () => {
@@ -145,27 +80,12 @@ describe('buildFields', () => {
 
           resolvers: assetResolversWithArgsAsFunc
         })
-      ).toMatchObject({
-        measurements: {
-          type: new GraphQLNonNull(new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Measurement.name))
-          )),
-
-          args: {
-            time: {
-              type: GraphQLDateTime
-            }
-          },
-
-          resolve: assetResolversWithArgsAsFunc.measurements.resolve
-        }
-      }
-      );
+      ).toMatchSnapshot();
     });
 
     it('from nested fields', () => {
       const fields = buildFields(CustomerNested.fields);
-      expect(fields.metadata.type).toBeInstanceOf(GraphQLInputObjectType);
+      expect(fields.metadata.type).toMatchSnapshot();
     });
   });
 

@@ -104,7 +104,13 @@ const buildTypes = graphql => (
 
   const _schemaStore = {
     get(key) {
-      if (getExistingType instanceof Function)
+      /* Make sure the check works with Jest mocks which are not an instance of
+       * Function
+       */
+      if (
+        getExistingType instanceof Function ||
+        typeof getExistingType === 'function'
+      )
         return getExistingType(key) || storeMap.get(key);
       else
         return storeMap.get(key);

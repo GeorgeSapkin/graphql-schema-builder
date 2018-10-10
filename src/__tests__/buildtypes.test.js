@@ -3,20 +3,16 @@
 const graphql = require('graphql');
 
 const {
-  spy
-} = require('sinon');
-
-const {
   buildSubType: _buildSubType,
   buildType:    _buildType
-} = require('../src/buildtypes');
+} = require('../buildtypes');
 
 const {
   types: {
     Mixed,
     ObjectId
   }
-} = require('../src/types');
+} = require('../types');
 
 const {
   buildTypes,
@@ -38,8 +34,9 @@ const {
   CustomerObjNoDyn,
   customerResolvers,
   nop,
-  resolvers
-} = require('./fixtures');
+  resolvers,
+  schemaStore
+} = require('./__fixtures__');
 
 const {
   GraphQLInputObjectType,
@@ -62,10 +59,10 @@ describe('buildType', () => {
       expect(customerType.name).toBe(Customer.name);
       expect(customerType.description).toBe(Customer.description);
 
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().assets.resolve
+        customerType._fields().assets.resolve
       ).toBe(
         customerResolvers.assets
       );
@@ -76,14 +73,14 @@ describe('buildType', () => {
 
       expect(customerType.name).toBe(Customer.name);
 
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().name.type
+        customerType._fields().name.type
       ).toMatchObject(
         new GraphQLNonNull(GraphQLJSON)
       );
-      expect(customerType._typeConfig.fields().assets).toBeUndefined();
+      expect(customerType._fields().assets).toBeUndefined();
     });
 
     it('a type schema (obj/no-dyn)', () => {
@@ -91,14 +88,14 @@ describe('buildType', () => {
 
       expect(customerType.name).toBe(Customer.name);
 
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().name.type
+        customerType._fields().name.type
       ).toMatchObject(
         new GraphQLNonNull(GraphQLString)
       );
-      expect(customerType._typeConfig.fields().assets).toBeUndefined();
+      expect(customerType._fields().assets).toBeUndefined();
     });
 
     it('a type schema (fun/obj)', () => {
@@ -106,14 +103,14 @@ describe('buildType', () => {
 
       expect(customerType.name).toBe(Customer.name);
 
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().name.type
+        customerType._fields().name.type
       ).toMatchObject(
         new GraphQLNonNull(GraphQLJSON)
       );
-      expect(customerType._typeConfig.fields().assets.resolve).toBeUndefined();
+      expect(customerType._fields().assets.resolve).toBeUndefined();
     });
 
     it('a type schema (obj/fun)', () => {
@@ -121,14 +118,14 @@ describe('buildType', () => {
 
       expect(customerType.name).toBe(Customer.name);
 
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().name.type
+        customerType._fields().name.type
       ).toMatchObject(
         new GraphQLNonNull(GraphQLString)
       );
-      expect(customerType._typeConfig.fields().assets.resolve).toBeUndefined();
+      expect(customerType._fields().assets.resolve).toBeUndefined();
     });
 
     it('a nested type schema', () => {
@@ -136,10 +133,10 @@ describe('buildType', () => {
 
       expect(customerType.name).toBe(Customer.name);
 
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().metadata.type
+        customerType._fields().metadata.type
       ).toBeInstanceOf(
         GraphQLInputObjectType
       );
@@ -165,22 +162,18 @@ describe('buildType', () => {
         getExistingType
       });
 
-      expect(assetType.name).toBe(Asset.name);
-      expect(customerType.name).toBe(Customer.name);
+      expect(assetType).toMatchSnapshot();
+      expect(customerType).toMatchSnapshot();
 
-      expect(assetType._typeConfig.fields).toBeInstanceOf(Function);
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(assetType._fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
-      expect(
-        assetType._typeConfig.fields().metadata.type
-      ).toBeInstanceOf(
-        GraphQLObjectType
-      );
+      expect(assetType._fields().metadata).toMatchSnapshot();
 
       expect(
-        assetType._typeConfig.fields().metadata
+        assetType._fields().metadata
       ).toMatchObject(
-        customerType._typeConfig.fields().metadata
+        customerType._fields().metadata
       );
     });
 
@@ -202,10 +195,10 @@ describe('buildType', () => {
       });
 
       expect(assetType.name).toBe(AssetNestedType.name);
-      expect(assetType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(assetType._fields).toBeInstanceOf(Function);
 
       expect(
-        assetType._typeConfig.fields().metadata.type
+        assetType._fields().metadata.type
       ).toBeInstanceOf(
         GraphQLObjectType
       );
@@ -228,10 +221,10 @@ describe('buildType', () => {
       });
 
       expect(assetArray.name).toBe(AssetNestedType.name);
-      expect(assetArray._typeConfig.fields).toBeInstanceOf(Function);
+      expect(assetArray._fields).toBeInstanceOf(Function);
 
       expect(
-        assetArray._typeConfig.fields().metadatas.type
+        assetArray._fields().metadatas.type
       ).toBeInstanceOf(
         GraphQLList
       );
@@ -254,10 +247,10 @@ describe('buildType', () => {
       });
 
       expect(assetArrayType.name).toBe(AssetNestedType.name);
-      expect(assetArrayType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(assetArrayType._fields).toBeInstanceOf(Function);
 
       expect(
-        assetArrayType._typeConfig.fields().metadatas.type
+        assetArrayType._fields().metadatas.type
       ).toBeInstanceOf(
         GraphQLList
       );
@@ -292,12 +285,39 @@ describe('buildType', () => {
       buildType(CustomerNested, {
         buildSubType,
         getExistingType
-      })._typeConfig.fields();
+      })._fields();
 
       expect(() => buildType(BadAssetNested, {
         buildSubType,
         getExistingType
-      })._typeConfig.fields()).toThrow();
+      })._fields()).toThrow();
+    });
+
+    it('with different sub type and _fields as object', () => {
+      const localSchemaStore = new Map();
+
+      function buildSubType(type) {
+        const newType = new GraphQLObjectType(type);
+        localSchemaStore.set(type.name, newType);
+        return newType;
+      }
+
+      const getExistingType = name => {
+        const existingType = localSchemaStore.get(name);
+        if (existingType != null)
+          existingType._fields = existingType._fields();
+        return existingType;
+      };
+
+      buildType(CustomerNested, {
+        buildSubType,
+        getExistingType
+      })._fields();
+
+      expect(() => buildType(BadAssetNested, {
+        buildSubType,
+        getExistingType
+      })._fields()).toThrow();
     });
   });
 });
@@ -329,34 +349,34 @@ describe('buildTypes', () => {
 
       expect(customerType.name).toBe(Customer.name);
       expect(customerType.description).toBe(Customer.description);
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().assets.resolve
+        customerType._fields().assets.resolve
       ).toBe(
         customerResolvers.assets
       );
     });
 
-    it('type schemas with getExistingType', () => {
-      const getExistingType = spy();
+    it('type schemas with getExistingType returning nothing', () => {
+      const getExistingType = jest.fn(() => null);
 
       const { Customer: customerType } = buildTypes({
         Asset,
         Customer
       }, resolvers, getExistingType);
 
-      expect(getExistingType.called);
-
       expect(customerType.name).toBe(Customer.name);
       expect(customerType.description).toBe(Customer.description);
-      expect(customerType._typeConfig.fields).toBeInstanceOf(Function);
+      expect(customerType._fields).toBeInstanceOf(Function);
 
       expect(
-        customerType._typeConfig.fields().assets.resolve
+        customerType._fields().assets.resolve
       ).toBe(
         customerResolvers.assets
       );
+
+      expect(getExistingType.mock.calls.length).toBe(1);
     });
   });
 
@@ -366,7 +386,9 @@ describe('buildTypes', () => {
 });
 
 describe('types', () => {
-  it('Mixed should work', () => expect(Mixed.inspect()).toBe('Mixed'));
+  it('Mixed should work', () => expect(Mixed.inspect()).toMatchSnapshot());
 
-  it('ObjectId should work', () => expect(ObjectId.inspect()).toBe('ObjectId'));
+  it('ObjectId should work', () => expect(
+    ObjectId.inspect()).toMatchSnapshot()
+  );
 });

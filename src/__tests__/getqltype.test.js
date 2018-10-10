@@ -11,67 +11,49 @@ const {
     Mixed,
     ObjectId
   }
-} = require('../src/types');
+} = require('../types');
 
 const {
   getQLType: _getQLType
-} = require('../src/getqltype');
-
-const {
-  GraphQLJSON: _GraphQLJSON
-} = require('../src/jsontype');
+} = require('../getqltype');
 
 const {
   Asset,
   nop,
   schemaStore
-} = require('./fixtures');
+} = require('./__fixtures__');
 
 const {
-  GraphQLBoolean,
-  GraphQLFloat,
-  GraphQLID,
-  GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLString
+  GraphQLObjectType
 } = graphql;
 
-const getQLType   = _getQLType(graphql);
-const GraphQLJSON = _GraphQLJSON(graphql);
+const getQLType = _getQLType(graphql);
 
 describe('getQLType', () => {
   describe('returns', () => {
     it('String!', () => {
       expect(
         getQLType(nop, { type: String })
-      ).toMatchObject(
-        new GraphQLNonNull(GraphQLString)
-      );
+      ).toMatchSnapshot();
     });
 
     it('String', () => {
       expect(
         getQLType(nop, { type: String, required: false })
-      ).toMatchObject(
-        GraphQLString
-      );
+      ).toMatchSnapshot();
     });
 
     it('Float!', () => {
       expect(
         getQLType(nop, { type: Number })
-      ).toMatchObject(
-        new GraphQLNonNull(GraphQLFloat)
-      );
+      ).toMatchSnapshot();
     });
 
     it('Float', () => {
       expect(
         getQLType(nop, { type: Number, required: false })
-      ).toMatchObject(
-        GraphQLFloat
-      );
+      ).toMatchSnapshot();
     });
 
     it('DateTime!', () => {
@@ -85,57 +67,43 @@ describe('getQLType', () => {
     it('DateTime', () => {
       expect(
         getQLType(nop, { type: Date, required: false })
-      ).toMatchObject(
-        GraphQLDateTime
-      );
+      ).toMatchSnapshot();
     });
 
     it('Boolean!', () => {
       expect(
         getQLType(nop, { type: Boolean })
-      ).toMatchObject(
-        new GraphQLNonNull(GraphQLBoolean)
-      );
+      ).toMatchSnapshot();
     });
 
     it('Boolean', () => {
       expect(
         getQLType(nop, { type: Boolean, required: false })
-      ).toMatchObject(
-        GraphQLBoolean
-      );
+      ).toMatchSnapshot();
     });
 
     it('JSON!', () => {
       expect(
         getQLType(nop, { type: Mixed })
-      ).toMatchObject(
-        new GraphQLNonNull(GraphQLJSON)
-      );
+      ).toMatchSnapshot();
     });
 
     it('JSON', () => {
       expect(
         getQLType(nop, { type: Mixed, required: false })
-      ).toMatchObject(
-        GraphQLJSON
-      );
+      ).toMatchSnapshot();
     });
 
     it('ID!', () => {
       expect(
         getQLType(nop, { type: ObjectId })
-      ).toMatchObject(
-        new GraphQLNonNull(GraphQLID)
-      );
+      ).toMatchSnapshot();
     });
 
     it('ID', () => {
       expect(
         getQLType(nop, { type: ObjectId, required: false })
-      ).toMatchObject(
-        GraphQLID
-      );
+      ).toMatchSnapshot();
     });
 
     it('refType!', () => {
@@ -146,9 +114,7 @@ describe('getQLType', () => {
           type: ObjectId,
           ref:  Asset.name
         })
-      ).toMatchObject(
-        new GraphQLNonNull(schemaStore.get(Asset.name))
-      );
+      ).toMatchSnapshot();
     });
 
     it('refType', () => {
@@ -158,41 +124,33 @@ describe('getQLType', () => {
         getQLType(getExistingType, {
           type: ObjectId, ref: Asset.name, required: false
         })
-      ).toMatchObject(
-        schemaStore.get(Asset.name)
-      );
+      ).toMatchSnapshot();
     });
 
-    it('string', () => {
+    it('stringType', () => {
       const getExistingType = schemaStore.get.bind(schemaStore);
 
       expect(
         getQLType(getExistingType, {
           type: 'Asset', required: false
         })
-      ).toMatchObject(
-        schemaStore.get(Asset.name)
-      );
+      ).toMatchSnapshot();
     });
 
-    it('string!', () => {
+    it('stringType!', () => {
       const getExistingType = schemaStore.get.bind(schemaStore);
 
       expect(
         getQLType(getExistingType, {
           type: 'Asset'
         })
-      ).toMatchObject(
-        new GraphQLNonNull(schemaStore.get(Asset.name))
-      );
+      ).toMatchSnapshot();
     });
 
     it('ID!', () => {
       expect(
         getQLType(nop, { type: ObjectId })
-      ).toMatchObject(
-        new GraphQLNonNull(GraphQLID)
-      );
+      ).toMatchSnapshot();
     });
 
     it('[String]!', () => {
@@ -201,29 +159,19 @@ describe('getQLType', () => {
           type:     [{ type: String }],
           required: false
         })
-      ).toMatchObject(
-        new GraphQLList(
-          new GraphQLNonNull(
-            GraphQLString
-          )
-        )
-      );
+      ).toMatchSnapshot();
     });
 
     it('[Float!]', () => {
       expect(
         getQLType(nop, { type: [Number], required: false })
-      ).toMatchObject(
-        new GraphQLList(new GraphQLNonNull(GraphQLFloat))
-      );
+      ).toMatchSnapshot();
     });
 
     it('[Boolean]!', () => {
       expect(
         getQLType(nop, { type: [{ type: Boolean, required: false }] })
-      ).toMatchObject(
-        new GraphQLNonNull(new GraphQLList(GraphQLBoolean))
-      );
+      ).toMatchSnapshot();
     });
 
     it('[refType!]!', () => {
@@ -234,32 +182,20 @@ describe('getQLType', () => {
           type: [ObjectId],
           ref:  Asset.name
         })
-      ).toMatchObject(
-        new GraphQLNonNull(
-          new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Asset.name))
-          )
-        )
-      );
+      ).toMatchSnapshot();
     });
 
-    it('[string!]!', () => {
+    it('[stringType!]!', () => {
       const getExistingType = schemaStore.get.bind(schemaStore);
 
       expect(
         getQLType(getExistingType, {
           type: ['Asset']
         })
-      ).toMatchObject(
-        new GraphQLNonNull(
-          new GraphQLList(
-            new GraphQLNonNull(schemaStore.get(Asset.name))
-          )
-        )
-      );
+      ).toMatchSnapshot();
     });
 
-    it('null', () => expect(getQLType(nop, { type: {} })).toBeNull());
+    it('null', () => expect(getQLType(nop, { type: {} })).toMatchSnapshot());
   });
 
   describe('throws', () => {

@@ -17,7 +17,7 @@ const {
   GraphQLJSON: _GraphQLJSON,
 
   parseLiteral: _parseLiteral
-} = require('../src/jsontype');
+} = require('../jsontype');
 
 const GraphQLJSON  = _GraphQLJSON(graphql);
 const parseLiteral = _parseLiteral(graphql);
@@ -25,11 +25,11 @@ const parseLiteral = _parseLiteral(graphql);
 describe('GraphQLJSON', () => {
   const obj = { a: 1 };
   it('serialize works', () => {
-    expect(GraphQLJSON.serialize(obj)).toMatchObject(obj);
+    expect(GraphQLJSON.serialize(obj)).toMatchSnapshot();
   });
 
   it('parseValue works', () => {
-    expect(GraphQLJSON.parseValue(obj)).toMatchObject(obj);
+    expect(GraphQLJSON.parseValue(obj)).toMatchSnapshot();
   });
 });
 
@@ -39,28 +39,28 @@ describe('parseLiteral', () => {
       expect(parseLiteral({
         kind:  BOOLEAN,
         value: true
-      })).toBeTruthy();
+      })).toMatchSnapshot();
     });
 
     it('string value', () => {
       expect(parseLiteral({
         kind:  BOOLEAN,
         value: 'abc'
-      })).toBe('abc');
+      })).toMatchSnapshot();
     });
 
     it('float value when FLOAT', () => {
       expect(parseLiteral({
         kind:  FLOAT,
         value: '1.23'
-      })).toBe(1.23);
+      })).toMatchSnapshot();
     });
 
     it('float value when INT', () => {
       expect(parseLiteral({
         kind:  INT,
         value: '1'
-      })).toBe(1);
+      })).toMatchSnapshot();
     });
 
     it('list value', () => {
@@ -73,7 +73,7 @@ describe('parseLiteral', () => {
           kind:  STRING,
           value: 'abc'
         }]
-      })).toMatchObject([1.23, 'abc']);
+      })).toMatchSnapshot();
     });
 
     it('object value', () => {
@@ -104,19 +104,14 @@ describe('parseLiteral', () => {
             }]
           }
         }]
-      })).toMatchObject({
-        a: 'abc',
-        b: {
-          c: false
-        }
-      });
+      })).toMatchSnapshot();
     });
 
     it('null', () => {
       expect(parseLiteral({
         kind:  123,
         value: 456
-      })).toBeNull();
+      })).toMatchSnapshot();
     });
   });
 });

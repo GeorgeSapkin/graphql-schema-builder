@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphQLJSON parseValue works 1`] = `
+Object {
+  "a": 1,
+}
+`;
+
+exports[`GraphQLJSON serialize works 1`] = `
+Object {
+  "a": 1,
+}
+`;
+
+exports[`parseLiteral returns boolean value 1`] = `true`;
+
+exports[`parseLiteral returns float value when FLOAT 1`] = `1.23`;
+
+exports[`parseLiteral returns float value when INT 1`] = `1`;
+
+exports[`parseLiteral returns list value 1`] = `
+Array [
+  1.23,
+  "abc",
+]
+`;
+
+exports[`parseLiteral returns null 1`] = `null`;
+
+exports[`parseLiteral returns object value 1`] = `
+Object {
+  "a": "abc",
+  "b": Object {
+    "c": false,
+  },
+}
+`;
+
+exports[`parseLiteral returns string value 1`] = `"abc"`;
