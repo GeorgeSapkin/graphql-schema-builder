@@ -9,7 +9,7 @@ Object {
   "args": Array [],
   "isDeprecated": false,
   "name": "metadata",
-  "type": "metadata",
+  "type": "Metadata",
 }
 `;
 

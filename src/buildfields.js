@@ -84,14 +84,14 @@ const buildFields = graphql => function _buildFields(fields, {
 
     const type = (() => {
       if (subType) {
+        const name = getSubTypeName(x);
         if (!Array.isArray(subType)) {
-          return buildSubFields(subType, x);
+          return buildSubFields(subType, name);
         }
         else {
           // if the subtype is enclosed in an array, build a GraphQLList
           // NB: the keys for arrays of subtypes are assumed to be consistent
           // with the name of the subtype, e.g. assets: [Asset]
-          const name = getSubTypeName(x);
           const _type = buildSubFields(subType[0], name);
 
           return new graphql.GraphQLList(

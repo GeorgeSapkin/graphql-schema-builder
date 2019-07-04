@@ -46,7 +46,7 @@ Object {
 }
 `;
 
-exports[`buildFields returns a field schema from nested fields 1`] = `"metadata"`;
+exports[`buildFields returns a field schema from nested fields 1`] = `"Metadata"`;
 
 exports[`buildFields returns a field schema from object fields 1`] = `
 Object {
