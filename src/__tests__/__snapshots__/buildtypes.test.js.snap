@@ -7,8 +7,14 @@ exports[`buildType returns a nested type schema with duplicate sub type 2`] = `"
 exports[`buildType returns a nested type schema with duplicate sub type 3`] = `
 Object {
   "args": Array [],
+  "astNode": undefined,
+  "deprecationReason": undefined,
+  "description": undefined,
+  "extensions": undefined,
   "isDeprecated": false,
   "name": "metadata",
+  "resolve": undefined,
+  "subscribe": undefined,
   "type": "Metadata",
 }
 `;

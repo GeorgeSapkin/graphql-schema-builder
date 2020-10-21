@@ -1,6 +1,6 @@
 {
   "name": "graphql-schema-builder",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "GraphQL Schema Builder",
   "repository": "GeorgeSapkin/graphql-schema-builder",
   "main": "src/index.js",
@@ -17,14 +17,14 @@
     "graphql-iso-date": "^3.6.1"
   },
   "devDependencies": {
-    "eslint": "^6.0.1",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.18.0",
-    "eslint-plugin-node": "^9.1.0",
+    "eslint": "^7.11.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "graphql": "^14.4.2",
-    "jest": "^24.8.0"
+    "eslint-plugin-standard": "^4.0.1",
+    "graphql": "^15.3.0",
+    "jest": "^26.6.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0"
